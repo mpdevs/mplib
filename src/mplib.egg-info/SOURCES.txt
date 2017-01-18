@@ -32,6 +32,8 @@ src/mplib/dnr/__init__.py
 src/mplib/dnr/api.py
 src/mplib/dnr/factory.py
 src/mplib/dnr/helper.py
+src/mplib/regexp_tools/__init__.py
+src/mplib/regexp_tools/reg_abc.py
 src/mplib/tag/__init__.py
 src/mplib/tag/api.py
 src/mplib/tag/factory.py
