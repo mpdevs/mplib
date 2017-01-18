@@ -1,0 +1,11 @@
+# 通用模块
+
+# 存放通用类和函数
+
+# base_class, 存放直接继承 __builtin__ 的类
+
+# decorators, 存放全局的装饰器
+
+# settings, 存放mplib.IO.db所需要的信息
+
+# unicode_tools, 存放编码处理的函数

@@ -1,0 +1,10 @@
+redis==2.10.5
+jieba==0.38
+scikit-learn==0.18.1
+pandas==0.19.1
+chardet==2.3.0
+openpyxl==2.3.2
+mysql-python==1.2.5
+psycopg2==2.6.2
+pyhs2==0.6.0
+impyla==0.14.0
