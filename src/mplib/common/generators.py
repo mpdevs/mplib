@@ -1,5 +1,8 @@
 # coding: utf-8
 # __author__: u"John"
+"""
+This module contains global genderators
+"""
 from __future__ import unicode_literals
 import string
 
