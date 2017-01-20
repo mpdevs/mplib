@@ -54,8 +54,6 @@ def g_alphabet(index, lowercase=False):
     return
 
 
-# f=lambda i:i>=0and f(i/26-1)+chr(65+i%26)or''
-
 if __name__ == "__main__":
     from helpers import print_line
     print_line(center_word=g_fib.__name__)
