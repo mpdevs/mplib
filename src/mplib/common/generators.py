@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import string
 
 
-def fib(index):
+def g_fib(index):
     """
     斐波那契数列
     :param index: 数列大小
@@ -17,37 +17,51 @@ def fib(index):
         n += 1
 
 
-def excel_col_name(index, c=""):
+def excel_col_name(index, lowercase=False):
     """
     生成类似Excel的列名
     例如 A-Z, AA-ZZ, AAA-ZZZ
     :param index: 列的数量
-    :param c:
+    :param lowercase:
     :return:
     """
-    print_line()
-    if index > 0:
-        index, m = divmod(index, 26)
-        print index, m
-        c = (string.ascii_uppercase[index - 1] if index else string.ascii_uppercase[m - 1]) + c
-        excel_col_name(index, c)
-    return index, c
+    return index >= 0 and excel_col_name(index / 26 - 1) + chr(97 if lowercase else 65 + index % 26) or ""
 
 
-f=lambda i:i>=0and f(i/26-1)+chr(65+i%26)or''
-def f1(i):
-    return i >= 0 and f1(i / 26 - 1) + chr(65 + i % 26) or ''
+def g_excel_col_name(index, lowercase=False):
+    """
+    生成类似Excel的列名的生成器
+    :param index:
+    :param lowercase:
+    :return:
+    """
+    n = 0
+    while n < index:
+        yield excel_col_name(n, lowercase)
+        n += 1
+
+
+def g_alphabet(index, lowercase=False):
+    """
+    生成A-Z或a-z的序列
+    :return:
+    """
+    n = 0
+    while n < index:
+        _, m = divmod(n, 26)
+        yield string.ascii_lowercase[m] if lowercase else string.ascii_uppercase[m]
+        n += 1
+    return
+
+
+# f=lambda i:i>=0and f(i/26-1)+chr(65+i%26)or''
 
 if __name__ == "__main__":
     from helpers import print_line
-    # print_line(center_word=fib.__name__)
-    # fibonacci = fib(6)
-    # print type(fibonacci)
-    # for i in fibonacci:
-    #     print i
-    # print_line()
-    # excel_col_name(1)
-    # print_line()
-    # print reduce(lambda x, y: x + y, fib(6))
-    # print_line()
-    print excel_col_name(26)
+    print_line(center_word=g_fib.__name__)
+    print [i for i in g_fib(6)]
+    print_line(center_word=g_alphabet.__name__)
+    print [i for i in g_alphabet(100, True)]
+    print [i for i in g_alphabet(100, False)]
+    print_line(center_word=g_excel_col_name.__name__)
+    print [i for i in g_excel_col_name(27)]
