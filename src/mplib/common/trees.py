@@ -76,10 +76,11 @@ def tag_dtype_check(tags):
         raise TypeError("Only basestring or list could be processed, detect your type is {0}".format(type(tags)))
 
 
-def tag_to_tree(tags=list()):
+def tag_to_tree(tags=list(), sep="."):
     """
     生成标签数的封装
     :param tags: list::[tag1, tag2...]
+    :param sep: basestring::分隔符
     :return:
     """
     tags = tag_dtype_check(tags)
@@ -88,7 +89,7 @@ def tag_to_tree(tags=list()):
 
     tree = defaultdict(dict, default_branch())
     for tag in tags:
-        attach(tag, tree)
+        attach(tag, tree, sep=sep)
     return tree
 
 if __name__ == "__main__":
