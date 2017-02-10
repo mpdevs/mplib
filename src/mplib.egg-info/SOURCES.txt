@@ -27,6 +27,7 @@ src/mplib/common/decorators.py
 src/mplib/common/generators.py
 src/mplib/common/helpers.py
 src/mplib/common/settings.py
+src/mplib/common/trees.py
 src/mplib/common/unicode_tools.py
 src/mplib/dnr/__init__.py
 src/mplib/dnr/api.py

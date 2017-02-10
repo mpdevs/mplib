@@ -1,5 +1,8 @@
 # coding: utf-8
 # __author__: u"John"
+"""
+This module contains debug / print tools
+"""
 from __future__ import unicode_literals
 from unicode_tools import to_unicode
 from settings import DEBUG
