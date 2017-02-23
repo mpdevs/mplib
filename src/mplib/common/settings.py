@@ -14,7 +14,7 @@ MYSQL_SETTINGS = dict(
 
 HIVE_CONNECTION = dict(
     database="das",
-    host="172.16.1.11",
+    host="172.16.1.12",
     user="big boss",
     password="it's secret",
     port=10000,

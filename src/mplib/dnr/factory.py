@@ -1,700 +1,314 @@
 # coding: utf-8
 # __author__: u"John"
-from __future__ import division
-from mplib.common import AttributeDict
-from mplib.common import to_unicode
-from glob import glob
-from os import path
-import pandas as pd
+from __future__ import unicode_literals
+from mplib.common import smart_decode, time_elapse
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+import editdistance
+import traceback
+import pandas
+import jieba
 import re
 
 
-# region 可复用基本类 可以得到文件名，文件拓展，还有一个加序号的方法
-class BaseReducer(object):
+class DataDenoiser(object):
     """
-    变量初始化设定是可以复用的代码
+    数据降噪
+    传入数据有格式要求
+    list(list()) 其中list可以被替换成tuple, 别的不行
+    所有去水工作都是逐行处理
     """
-    def __init__(self):
-        self.code_message = AttributeDict(code=0, message=u"")
-        self.dict_abspath_list = []  # 预留词库类文件批量处理控制变量
-        self.current_dict_abspath = None  # 当前正在处理词库的文件
-        self.data_abspath_list = []  # 预留数据类文件批量处理控制变量
-        self.current_data_abspath = None  # 当前正在处理数据的文件
-        self.file_extension = None  # 当前文件的扩展名
-        self.export_name = None  # 导出文件的命名
-        self.export_head = None  # 导出文件的列名
-        self.id_column_clean_index = None  # 指定需要处理的列索引号，起始号为0
-        self.data_column_index = None  # 数据有效列标志位
-        self.keywords_list = []  # 关键词词库
-        self.current_keywords = None  # 正在使用的关键词或正则表达式
-        self.result_list = []  # 匹配到关键词的水帖列表，用于关键词正确性检验
-        self.current_result = None  # 当前正在使用的关键词
-        self.error_list = []  # 用于异常处理的错误列表
-        self.current_error = None  # 当前错误信息
-        self.show_process = False  # 是否显示关键词匹配情况
-        self.raw_list = []  # 处理前的数据
-        self.current_string = None  # 正在处理的字符串
-        self.trash_list = []  # 水军数据
-        self.cleaned_list = []  # 去水之后的数据
-        self.has_header = True  # 读入的数据是否有表头
-        self.clean_index = []
-        self.trash_index = []
-        self.save_file_path = ''
-        self.header = ''
-        self.data_column_name = ''
-        return
+    def __init__(self, data, content_index=0, head=["Content"]):
+        self.head = head
+        self.data = self.process(data)
+        self.line = None
+        self.content_index = content_index
+        self.content = ""
+        self.noise_tag_column_name = "is_noise"
+        self.is_noise_line = False
+        self.noise_keywords_list = ["咨询", "关键词", "(正|则|表|达|式)"]
+        self.noise_tag_emoji = "\[.*?]"
+        self.noise_tag_brackets = "【.*?】|★|◆"
+        self.noise_tag_label = "#.*?#"
+        self.noise_tag_count = 3
+        self.noise_tag_char = 10
+        self.noise_length_unicode = "[\u4e00-\u9fa5]"
+        self.noise_length_min = 5
+        self.noise_length_max = 500
+        self.noise_series_list = ["[1-9][.|:|、][\u3007\u4E00-\u9FCB\uE815-\uE864]|[\u2460-\u2469]"]
+        self.noise_series_threshold = 4
+        self.noise_client_list = [
+            "粉丝红包",
+            "vivo智能手机",
+            "微博等级",
+            "IFTTT_Official",
+            "应用广场",
+            "明星势力榜",
+            "IN",
+            "openapi监控",
+            "无线会员中心",
+            "今日头条",
+            "新浪长微博",
+            "投票",
+            "微问",
+            "格瓦拉电影",
+            "优酷土豆",
+            "微博客户端",
+            "微博位置",
+            "2014刷刷没想到",
+            "Q蒂_开心消消乐",
+            "微游戏",
+            "爱图购官网",
+            "King_Queen游戏",
+            "新浪新闻iPhone客户端",
+            "喜马拉雅网",
+            "新浪爱猜",
+            "实惠",
+            "红包锁屏app",
+            "百词斩图背单词",
+            "网易新闻客户端",
+            "互粉大厅",
+            "香港新浪微博主頁",
+            "美团手机客户端",
+            "网易云音乐",
+            "平台测试",
+            "爱问知识人",
+            "微博之夜",
+            "微卡券",
+            "荔枝FM",
+            "新浪新闻评论",
+            "新浪新闻Android版",
+            "喜马拉雅听我想听",
+            "去动",
+            "虾米音乐",
+            "91duan短网址应用",
+            "美分享",
+            "豆瓣电影",
+            "微博电影",
+            "风水百科",
+            "weipai微拍",
+            "左岸格子",
+            "搜狐新闻客户端",
+            "新闻资讯App",
+            "百词斩",
+            "i看",
+            "虾米音乐移动版",
+            "保卫萝卜2",
+            "小清新范",
+            "勋章馆",
+            "5pv土豪金",
+            "足球大师",
+            "58同城客户端",
+            "GZ移动频道",
+            "优酷网连接分享",
+            "创意达人",
+            "小影",
+            "Tmall_Android客户端",
+            "街机千炮捕鱼",
+            "喜试网",
+            "移动微店",
+            "必应美图分享",
+            "美文心语",
+            "手机酷狗iPhone版",
+            "保卫萝卜2安卓版",
+            "不背单词",
+            "小清新唯美风",
+            "58_淘房淘二手找工作",
+            "钱咖官网",
+            "魅族官网",
+            "微博电视指数",
+            "我不愿将就",
+            "搜狐视频",
+            "美容达人",
+            "酷狗音乐",
+            "影视达人推荐",
+            "Mtime时光网",
+            "旅游达人推荐",
+            "乐视网",
+            "Nikepluschina",
+            "凤凰视频一键转帖",
+            "21CN新闻",
+            "Princess公主部落",
+            "天天动听高品质音乐",
+            "我和小伙伴的2014",
+            "秒拍安卓版",
+            "微商铺",
+            "唯美小调",
+            "秒拍客户端",
+            "美女达人",
+            "知乎网",
+            "忍将OL",
+        ]
+        self.noise_client_label = ">[^@]*<"
+        self.valid_unicode = "[\u3007\u4E00-\u9FCB\uE815-\uE864]"
+        self.noise_edit_distance_threshold = 5
+        self.split_data_set = False
+        self.use_keywords = True
+        self.use_tag = True
+        self.use_length = True
+        self.use_series = True
+        self.use_client = True
+        self.use_special_characters = True
+        self.use_edit_distance = True
+        self.row_index = 0
+        self.work_flow_list = []
 
     @staticmethod
-    def get_file_extension(file_path):
-        return path.splitext(file_path)[1][1:]
-        # splitext分离拓展名
+    def process(data):
+        if isinstance(data, list) or isinstance(data, tuple):
+            return smart_decode(data, cast=True)
+        elif isinstance(data, pandas.DataFrame):
+            return smart_decode(data.values.tolist(), cast=True)
 
-    @staticmethod
-    def get_file_name(file_path):
-        return path.splitext(path.basename(file_path))[0]
-
-    @staticmethod
-    def one_column_clean_indexer(data_list):
-        """
-        将单列的数据变成带序号的数据
-        :param data_list:  list(unicode)
-        :return:  list(tuple(index, unicode))
-        """
-        ret = []
-        for line in xrange(len(data_list)):
-            ret.append((line + 1, data_list[line]))
-        return ret
-
-    def get_contents(self):
-        """
-        可以通过外部赋值设置值，也可以通过别的方法实现
-        数据库的操作后将数据赋值给 self.raw_list
-        :return:
-        """
-        if self.raw_list:
-            self.data_column_index = self.data_column_name
-            self.header = []
-            return
-        else:
-            pass
-        if self.current_data_abspath:
-            self.file_extension = self.get_file_extension(self.current_data_abspath)
-            self.export_name = self.get_file_name(self.current_data_abspath)
-            if self.file_extension == u"txt":
-                try:
-                    f = open(self.current_data_abspath, u"rb")
-                    # 2进制模式打开
-                except IOError as e:
-                    self.current_error = str(e)
-                    self.code_message.code = 1
-                    self.code_message.message = u"get_contents open(file) IOError"
-                    self.error_list.append(self.current_error)
-                else:
-                    with f:
-                        if self.has_header:
-                            self.header = f.readline().decode(u"utf-8").replace(u"\r", u"").replace(u"\n", u"").split(u"\t")
-                            self.data_column_index = self.header.index(self.data_column_name)
-                        else:
-                            self.header = []
-                            self.data_column_index = self.data_column_name
-                        for line in f:
-                            line = line.decode(u"utf-8").replace(u"\r", u"").replace(u"\n", u"").split(u"\t")
-                            self.raw_list.append(line)
-                        self.code_message.message = u"data file import successfully"
-        else:
-            self.raw_list = [(1, u"关键%词1"), (2, u"1这是%一%个正2"), (3, u"这2%是一个藏得很深%的2水贴，你检测%不3出来"),
-                             (4, u"1%则%4表达%2式6%呢")]
-        return
-# endregion
-
-
-# region 关键词去水
-class KeywordsReducer(BaseReducer):
-    """
-    利用关键词去水的工具，支持关键词是正则表达式的情况
-    """
-    def __init__(self):
-        BaseReducer.__init__(self)
-        self.one_hit_strategy = True
-        self.count_list = []
-
-    def get_keywords(self):
-        """
-        数据库的操作后将数据赋值给 self.keywords_list
-        :return:
-        """
-        if self.keywords_list:
-            return
-        else:
-            pass
-        if self.current_dict_abspath:
-            self.export_name = u"{0}-{1}".format(self.export_name, self.get_file_name(self.current_dict_abspath))
-            try:
-                f = open(self.current_dict_abspath, u"rb")
-            except IOError as e:
-                self.current_error = str(e)
-                self.code_message.code = 1
-                self.code_message.message = u"get_keywords open(file) IOError"
-                self.error_list.append(self.current_error)
-            else:
-                with f:
-                    # self.keywords_list += f.read().decode(u"gb2312").split(u"\r\n")
-                    keyword = f.read().decode(u"utf-8").strip().split(u"\r\n")
-                    if keyword:
-                        self.keywords_list += keyword
-                    self.code_message.message = u"keywords dictionary import successfully"
-        else:
-            self.keywords_list = [u"关键词", u"(正|则|表|达|式)"]
-
-        return
-
-    def keywords_finder(self):
-        """
-        python的正则表达式可以直接支持中文
-        :return:
-        """
+    def get_content(self, line, content_index):
         try:
-            pattern = re.compile(pattern=self.current_keywords, flags=0)
-        except Exception as e:
-            self.current_error = str(e)
-            self.code_message.code = 2
-            self.code_message.message = u"keywords_finder re.compile error"
-            self.error_list.append(self.current_error)
-            self.current_result = []
-        else:
-            self.current_result = re.findall(pattern, self.current_string)
-        return
+            content = line[content_index]
+            if not content: self.set_noise_line()
+        except IndexError:
+            self.error_info()
+            content = ""
+        return content
 
-    def main(self):
-        """
-        复杂应用才需要Override这部分
-        :return:
-        """
-        self.get_contents()
-        self.get_keywords()
-        self.count_list = [0] * len(self.keywords_list)
-        for index in range(len(self.raw_list)):
-            string = self.raw_list[index]
-            self.current_string = to_unicode(string[self.data_column_index])
-            hit = False
-            # for keywords in self.keywords_list:
+    def noise_list_loop(self, noise_list, match_count_threshold=1):
+        for noise in noise_list:
             try:
-                for keywords_index in range(0, len(self.keywords_list)):
-                    keywords = self.keywords_list[keywords_index]
-                    self.current_keywords = keywords
-                    self.keywords_finder()
-                    if self.current_result:
-                        self.trash_list.append(string)
-                        self.result_list.append(self.current_result)
-                        hit = True
-                        self.count_list[keywords_index] += 1
-                        if self.one_hit_strategy:
-                            break
-                        else:
-                            continue
-                    else:
-                        continue
-                if hit:
-                    self.trash_index.append(index)
+                match_list = re.findall(re.compile(pattern=noise, flags=0), self.content)
+                if len(match_list) > match_count_threshold - 1:
+                    self.set_noise_line()
+                    break
+                else:
                     continue
-                else:
-                    self.clean_index.append(index)
-                    self.cleaned_list.append(string)
             except:
-                pass
-        if self.show_process:
-            total_length = float(len(self.raw_list))
-            keyword_count = 0
-            for count in self.count_list:
-                keyword_count += count
-            print u'關鍵詞標記微博數量為 ' + str(keyword_count) + u' 占' + str(keyword_count / total_length * 100) + '%'
-            print u"{0}以下是關鍵詞標記的水贴{0}".format(u"-" * 30)
-            for count_index in range(len(self.count_list)):
-                print u'关键词 "' + self.keywords_list[count_index] + u'" 匹配的微博数量为 ' \
-                      + str(self.count_list[count_index]) + u'  占' + \
-                      str(self.count_list[count_index] / total_length * 100) + '%'
-        # 在多数据文件或者多词库文件进行批量处理的时候需要对这些数据进行重置
-        # self.raw_list = None
-        # self.keywords_list = None
-        return
-# endregion
+                self.error_info()
+                continue
 
-
-# region 之前的打标签去水工具
-class TaggingReducer(BaseReducer):
-    """
-    利用打标签去水的工具
-    """
-    def __init__(self):
-        BaseReducer.__init__(self)
-
-    def main(self):
+    def find_noise_keywords(self):
         """
-        复杂应用才需要Override这部分
+        满足特定关键词条件的文本即为噪声数据
         :return:
         """
-        self.export_name = self.get_file_name(self.current_data_abspath)
-        tags_dir_path = self.current_dict_abspath + u'\\*'
-        tags = glob(tags_dir_path)
+        self.noise_list_loop(self.noise_keywords_list)
 
-        # self.get_contents()
-        # raw_data = DataFrame(self.raw_list, columns=self.header)
-
-        # 读入数据
-        raw_data = pd.read_csv(self.current_data_abspath, sep='\t', index_col=None, error_bad_lines=False,
-                               low_memory=False)
-        self.header = raw_data.columns
-        # print ur'Data loaded!'
-        # 处理缺失值
-        raw_data = raw_data.ix[raw_data[self.data_column_name].dropna().index, :]
-        # 处理重复值
-        raw_data = raw_data.ix[raw_data[self.data_column_name].drop_duplicates().index, :]
-
-        # 提取文本内容，打标签
-        # data = Series([string.encode('utf-8') for string in raw_data[self.data_column_name]])
-        data = raw_data[self.data_column_name]
-        # att = tagging(data, tags)
-
-        # is_trash = att.apply(sum, axis=1)
-        # raw_data['is_trash'] = is_trash
-        # mask_cleaned = is_trash == 0
-        # cleaned = raw_data[mask_cleaned]
-        # mask_trash = is_trash == 1
-        # trash = raw_data[mask_trash]
-
-        # 转换数据格式
-        # cleaned_np_array = cleaned.values
-        # trash_np_array = trash.values
-        # self.cleaned_list = cleaned_np_array.tolist()
-        # self.trash_list = trash_np_array.tolist()
-
-        # cleaned_file_name = self.save_file_path + r'\clean_data.txt'
-        # trash_file_name = self.save_file_path + r'\dictionary_data_trash.txt'
-        #
-        # cleaned.to_csv(cleaned_file_name, encoding="utf-8", sep="\t", index=None)
-        # trash.to_csv(trash_file_name, encoding="utf-8", sep="\t", index=None)
-
-        # 在多数据文件或者多词库文件进行批量处理的时候需要对这些数据进行重置
-        # self.raw_list = None
-        # self.keywords_list = None
-        return
-# endregion
-
-
-# region 热门话题去水
-class TagsReducer(BaseReducer):
-    """
-    利用#热门话题#个数，以及其余字数个数去水的工具
-    """
-    def __init__(self):
-        BaseReducer.__init__(self)
-        self.numbers = 10
-        self.tags = 3
-
-    def get_tags(self):
-        if self.current_string:
-            tags_char_num = 0
-            # 匹配#热门话题#
-            seg_list = re.findall(ur'#.*?#', self.current_string)
-            # 匹配【】
-            seg_list2 = re.findall(ur'【.*?】|★|◆', self.current_string)
-            # 匹配[表情]
-            seg_list3 = re.findall(ur'\[.*?]', self.current_string)
-            # 标签数=#热门话题# + 【】*阈值 ，出现【】即判为垃圾
-            tags = len(seg_list) + len(seg_list2)*self.tags
-            for seg in seg_list:
-                tags_char_num += len(re.findall(ur"[\u3007\u4E00-\u9FCB\uE815-\uE864]", seg))
-            for seg3 in seg_list3:
-                tags_char_num += len(re.findall(ur"[\u3007\u4E00-\u9FCB\uE815-\uE864]", seg3))
-
-            char_list = re.findall(ur"[\u3007\u4E00-\u9FCB\uE815-\uE864]", self.current_string)
-            char_num = len(char_list) - tags_char_num
-
-            return tags, char_num
-
-    def tags_finder(self):
-        """
-        python的正则表达式可以直接支持中文
-        :return:
-        """
-        tags, char_num = self.get_tags()
-
-        self.current_result = char_num >= self.numbers and tags < self.tags
-        return
-
-    def main(self):
-        """
-        复杂应用才需要Override这部分
-        :return:
-        """
-        self.get_contents()
-        for index in range(len(self.raw_list)):
-            string = self.raw_list[index]
-            self.current_string = to_unicode(string[self.data_column_index])
-            try:
-                self.tags_finder()
-                if self.current_result:
-                    self.clean_index.append(index)
-                    self.cleaned_list.append(string)
-                else:
-                    self.trash_index.append(index)
-                    self.trash_list.append(string)
-            except:
-                pass
-        # 在多数据文件或者多词库文件进行批量处理的时候需要对这些数据进行重置
-        # self.raw_list = None
-        # self.keywords_list = None
-        return
-# endregion
-
-
-# region 字数个数去水
-class NumbersReducer(BaseReducer):
-    """
-    利用文字个数去水的工具
-    """
-    def __init__(self):
-        BaseReducer.__init__(self)
-        self.min_numbers = 5
-        self.max_numbers = 500
-
-    def number_finder(self):
-        """
-            python的正则表达式可以直接支持中文
-            :return:
-            """
+    def find_noise_tag(self):
         try:
-            numbers = re.findall(ur"[\u4e00-\u9fa5]", self.current_string)
-            number_counts = len(numbers)
-        except Exception as e:
-            self.current_error = str(e)
-            self.code_message.code = 3
-            self.code_message.message = u"number_finder re.findll error"
-            self.error_list.append(self.current_error)
-            self.current_result = []
-        else:
-            self.current_result = self.min_numbers < number_counts < self.max_numbers
+            noise_tag_count = 0
+            noise_tag_char = 0
+            hot_match_list = re.findall(re.compile(self.noise_tag_label), self.content)
+            brackets_match_list = re.findall(re.compile(self.noise_tag_brackets), self.content)
+            emoji_match_list = re.findall(re.compile(self.noise_tag_emoji), self.content)
 
-        return
+            for match_list in [hot_match_list, emoji_match_list]:
+                for match in match_list:
+                    noise_tag_count += len(re.findall(re.compile(self.valid_unicode), match))
 
-    def main(self):
+            noise_tag_char += len(hot_match_list) + len(brackets_match_list) * self.noise_tag_count
+
+            char_list = re.findall(re.compile(self.valid_unicode), self.content)
+            noise_tag_char = len(char_list) - noise_tag_char
+
+            if noise_tag_char < self.noise_tag_char or noise_tag_count >= self.noise_tag_count:
+                self.set_noise_line()
+
+        except:
+            self.error_info()
+
+    def find_noise_length(self):
+        numbers = len(re.findall(re.compile(self.noise_length_unicode), self.content))
+        if numbers < self.noise_length_min or numbers > self.noise_length_max:
+            self.set_noise_line()
+
+    def find_noise_series(self):
+        self.noise_list_loop(self.noise_series_list, match_count_threshold=self.noise_series_threshold)
+
+    def find_noise_client(self):
         """
-        复杂应用才需要Override这部分
+        由特定发出的客户端, 则是噪声数据(应用于微博)
         :return:
         """
-        self.get_contents()
-        for index in range(len(self.raw_list)):
-            string = self.raw_list[index]
-            self.current_string = to_unicode(string[self.data_column_index])
-            self.number_finder()
-            try:
-                if self.current_result:
-                    self.clean_index.append(index)
-                    self.cleaned_list.append(string)
-                else:
-                    self.trash_index.append(index)
-                    self.trash_list.append(string)
-            except:
-                pass
-        # 在多数据文件或者多词库文件进行批量处理的时候需要对这些数据进行重置
-        # self.raw_list = None
-        # self.keywords_list = None
-        return
-# endregion
-
-
-# region 非正常字符种数去水
-class AbnormalReducer(BaseReducer):
-    """
-    利用异常字符种数去水的工具，数字暂定为5
-    """
-    def __init__(self):
-        BaseReducer.__init__(self)
-        self.abnormal = 5
-
-    def abnormal_finder(self):
-        """
-            python的正则表达式可以直接支持中文
-            :return:
-            """
         try:
-            char_list = re.findall(ur"[\u3007\u4E00-\u9FCB\uE815-\uE864]", self.current_string)
-            match = re.findall(ur"[^—@~:：?!！/ ,，.\[\]()（）\dA-Za-z\u3007\u4E00-\u9FCB\uE815-\uE864]",
-                               self.current_string)
-        except Exception as e:
-            self.current_error = str(e)
-            self.code_message.code = 3
-            self.code_message.message = u"abnormal_finder re.find error"
-            self.error_list.append(self.current_error)
-            self.current_result = []
-        else:
-            number_counts = ''
-            for match_index in match:
-                number_counts += match_index
-            number_counts = set(number_counts)
-            self.current_result = len(number_counts) < self.abnormal and len(match)*2 <= len(char_list)
-        if self.show_process:
-            if self.current_result:
-                print u"含有的符号个数大于\n{0}".format(self.abnormal)
-            else:
-                # print u"没有匹配\n{0}".format(self.abnormal)
-                pass
-        else:
-            pass
-        return
+            match_list = re.findall(re.compile(pattern=self.noise_client_label), self.content)
+            match_list = match_list[0].strip(u"><") if match_list else ""
+            if match_list in self.noise_client_list:
+                self.set_noise_line()
+        except:
+            self.error_info()
 
-    def main(self):
-        """
-        复杂应用才需要Override这部分
-        :return:
-        """
-        self.get_contents()
-        for index in range(len(self.raw_list)):
-            string = self.raw_list[index]
-            self.current_string = to_unicode(string[self.data_column_index])
-            self.abnormal_finder()
-            try:
-                if self.current_result:
-                    self.clean_index.append(index)
-                    self.cleaned_list.append(string)
+    def find_noise_special_characters(self):
+        pass
+
+    def find_noise_edit_distance(self):
+        text_max_length = len(self.content)
+        max_length_text_index = self.row_index
+        for row_index in xrange(self.row_index, len(self.data)):
+            if self.data[row_index][-1] == "True" or self.line[-1] == "True": continue  # 跳过已经标注为噪声的数据
+            if row_index == self.row_index: continue  # 跳过自己
+            content = self.get_content(line=self.data[row_index], content_index=self.content_index)
+            if editdistance.eval(self.content, content) < self.noise_edit_distance_threshold:  # 编辑距离小于阈值的记为噪声数据
+                if len(content) > text_max_length:  # 需要保留最长的文本
+                    text_max_length = len(content)
+                    max_length_text_index = row_index
                 else:
-                    self.trash_index.append(index)
-                    self.trash_list.append(string)
-            except:
-                pass
-        # 在多数据文件或者多词库文件进行批量处理的时候需要对这些数据进行重置
-        # self.raw_list = None
-        # self.keywords_list = None
-        return
-# endregion
-
-
-# region 序列去水
-class SeriesReducer(BaseReducer):
-    """
-    利用序列去水的工具
-    """
-    def __init__(self):
-        BaseReducer.__init__(self)
-
-    def series_finder(self):
-        """
-            python的正则表达式可以直接支持中文
-            :return:
-            """
-        try:
-            pattern = re.compile(u'[1-9][.|:|、][\u3007\u4E00-\u9FCB\uE815-\uE864]|[\u2460-\u2469]')
-            series_list = re.findall(pattern, self.current_string)
-
-        except Exception as e:
-            self.current_error = str(e)
-            self.code_message.code = 3
-            self.code_message.message = u"series_finder re.find error"
-            self.error_list.append(self.current_error)
-            self.current_result = []
+                    self.data[row_index][-1] = "True"
+        if max_length_text_index == self.row_index:
+            self.line[-1] = "False"
         else:
-            series_length = len(series_list)
-            self.current_result = series_length <= 2
-        if self.show_process:
-            if self.current_result:
-                print u"含有的序号个数小于\n{0}".format(2)
-            else:
-                # print u"没有匹配\n{0}".format(self.abnormal)
-                pass
-        else:
-            pass
+            self.set_noise_line()
+            self.data[max_length_text_index][-1] = "False"
+
+    def bayes_classifier(self):
+        def string_preprocess(string):
+            raw_string = string
+            http_info = re.compile("[a-zA-z]+://[^\s]*")
+            string_without_http = http_info.sub(r"链接", raw_string)
+            at_info = re.compile(r"@[^ @，,。.]*")
+            string_without_http_and_at = at_info.sub(ur"@", string_without_http)
+            number_eng_info = re.compile(r"[0-9|a-zA-Z]")
+            clean_string = number_eng_info.sub("", string_without_http_and_at)
+            return clean_string
+        self.content = string_preprocess(self.content)
+        v = TfidfVectorizer(tokenizer=lambda x: jieba.cut(x), analyzer="word", stop_words=stop_words)
+        pass
+
+    def set_noise_line(self):
+        self.line[-1] = "True"
+        self.is_noise_line = True
+
+    def generate_work_flow(self):
+        if self.use_keywords: self.work_flow_list.append(self.find_noise_keywords)
+        if self.use_length: self.work_flow_list.append(self.find_noise_length)
+        if self.use_client: self.work_flow_list.append(self.find_noise_client)
+        if self.use_series: self.work_flow_list.append(self.find_noise_series)
+        if self.use_tag: self.work_flow_list.append(self.find_noise_tag)
+        if self.use_edit_distance: self.work_flow_list.append(self.find_noise_edit_distance)
         return
 
-    def main(self):
+    def start_work_flow(self):
+        self.is_noise_line = False
+        for work_flow in self.work_flow_list:
+            if not self.is_noise_line: work_flow()
+
+    def start_df_work_flow(self):
+        for work_flow in self.work_flow_list:
+            self.data = self.data.apply(work_flow, axis=1)
+
+    def error_info(self):
+        print "self.line = {}".format(self.line)
+        print "self.content = {}".format(self.content)
+        print traceback.print_exc()
+
+    @time_elapse
+    def run(self):
         """
-        复杂应用才需要Override这部分
+        文本格式的处理
         :return:
         """
-        self.get_contents()
-        for index in range(len(self.raw_list)):
-            string = self.raw_list[index]
-            self.current_string = to_unicode(string[self.data_column_index])
-            self.series_finder()
-            try:
-                if self.current_result:
-                    self.clean_index.append(index)
-                    self.cleaned_list.append(string)
-                else:
-                    self.trash_index.append(index)
-                    self.trash_list.append(string)
-            except:
-                pass
-        # 在多数据文件或者多词库文件进行批量处理的时候需要对这些数据进行重置
-        # self.raw_list = None
-        # self.keywords_list = None
-        return
-# endregion
+        self.data = [[] * len(self.head) + ["False"] if not self.line else self.line + ["False"] for self.line in self.data]
+        self.generate_work_flow()
+        for self.row_index, self.line in enumerate(self.data):
+            self.content = self.get_content(line=self.line, content_index=self.content_index)
+            self.start_work_flow()
+            self.data[self.row_index] = self.line
+        print "data size: {0}, noise size: {1}".format(len(self.data), len(filter(lambda x: x[-1] == "True", self.data)))
 
 
-# region 客户端去水
-class SourcesReducer(BaseReducer):
-    """
-    利用客户端来源去水的工具
-    """
-    def __init__(self):
-        BaseReducer.__init__(self)
-        self.count_list = []
 
-    def get_keywords(self):
-        """
-        数据库的操作后将数据赋值给 self.keywords_list
-        :return:
-        """
-        if self.keywords_list:
-            return
-        else:
-            pass
-        if self.current_dict_abspath:
-            self.export_name = u"{0}-{1}".format(self.export_name, self.get_file_name(self.current_dict_abspath))
-            try:
-                f = open(self.current_dict_abspath, u"rb")
-            except IOError as e:
-                self.current_error = str(e)
-                self.code_message.code = 1
-                self.code_message.message = u"get_keywords open(file) IOError"
-                self.error_list.append(self.current_error)
-            else:
-                with f:
-                    # self.keywords_list += f.read().decode(u"gb2312").split(u"\r\n")
-                    keyword = f.read().decode(u"utf-8").strip().split(u"\r\n")
-                    if keyword:
-                        self.keywords_list += keyword
-                    self.code_message.message = u"keywords dictionary import successfully"
-        else:
-            self.keywords_list = [u"扇贝单词", u"微博相机"]
-
-        return
-
-    def sources_finder(self):
-        """
-        python的正则表达式可以直接支持中文
-        :return:
-        """
-        pattern = re.compile(pattern=ur'>[^@]*<', flags=0)
-        self.current_string = re.findall(pattern, self.current_string)
-        if self.current_string:
-            self.current_string = self.current_string[0]
-        else:
-            self.current_string = ur''
-        self.current_string = self.current_string.strip(u'><')
-        self.current_result = self.current_string not in self.keywords_list
-        if self.show_process:
-            if self.current_result:
-                print u"找到关键词\n{0}".format(self.current_keywords)
-                for r in self.current_result:
-                    print r
-            else:
-                # print u"没有找到关键词\n{0}".format(keywords)
-                pass
-        else:
-            pass
-        return
-
-    def main(self):
-        """
-        复杂应用才需要Override这部分
-        :return:
-        """
-        self.get_contents()
-        self.get_keywords()
-        self.count_list = [0] * len(self.keywords_list)
-        for index in range(len(self.raw_list)):
-            string = self.raw_list[index]
-            self.current_string = to_unicode(string[self.data_column_index])
-            self.sources_finder()
-            try:
-                if self.current_result:
-                    self.clean_index.append(index)
-                    self.cleaned_list.append(string)
-                else:
-                    self.trash_index.append(index)
-                    self.trash_list.append(string)
-            except:
-                pass
-        # 在多数据文件或者多词库文件进行批量处理的时候需要对这些数据进行重置
-        # self.raw_list = None
-        # self.keywords_list = None
-        return
-# endregion
-
-
-if __name__ == u"__main__":
-    # kr = AbnormalReducer()
-    # kr = KeywordsReducer()
-    # kr = SourcesReducer()
-    # kr = TagsReducer()
-    kr = NumbersReducer()
-    # kr = SeriesReducer()
-    kr.min_numbers = 5
-    # kr.show_process = True
-    kr.current_data_abspath = ur"D:\WorkSpace\Data\data_sample.txt"
-    # kr.has_header = True
-    # kr.data_column_name = ur"text"
-    # kr.current_dict_abspath = ur"D:\workspace\Data\keywords.txt"
-    kr.has_header = False
-    kr.data_column_name = 2
-
-    # kr.data_column_index = 3
-    # kr.current_dict_abspath = ur"D:\WorkSpace\Data\trash_sources.txt"
-
-    # kr.min_numbers = 5
-    # kr.max_numbers = 500
-
-    # kr = TaggingReducer()
-    # kr.current_data_abspath = ur"D:\WorkSpace\Data\虎扑---帖1.txt"
-    # kr.has_header = True
-    # kr.data_column_name = 'Content'
-    # kr.current_dict_abspath = ur"D:\workspace\Data\通用词库2"
-    # kr.save_file_path = ur'D:\WorkSpace\Data'
-
-    kr.main()
-
-    print u"{0}统计信息{0}".format(u"-" * 30)
-    print u'共有数据 ' + str(len(kr.raw_list))
-    print u'水有 ' + str(len(kr.raw_list) - len(kr.cleaned_list)) + u'条'
-    print u'重复水有 ' + str(len(kr.trash_list) - len(kr.raw_list) + len(kr.cleaned_list)) + u'条'
-    print u'非水有 ' + str(len(kr.cleaned_list)) + u'条'
-    print u'去水率 ' + str(float(len(kr.raw_list) - len(kr.cleaned_list)) / len(kr.raw_list) * 100) + u'%'
-
-    # region 1000条人工标注数据data_sample的测试
-    # clean_index = [3, 4, 26, 29, 33, 42, 55, 62, 70, 80, 83, 100, 109, 113, 119, 121, 171, 204, 261, 284, 290, 349,
-    #                385, 397, 415, 421, 435, 551, 590, 615, 618, 771, 778, 781, 793, 843, 963, 965, 972]
-    #
-    # A = 0
-    # for i in kr.trash_index:
-    #     if (int(i) + 1) not in clean_index:
-    #         A += 1
-    #     else:
-    #         print kr.raw_list[i][2]
-    #         print kr.raw_list[i][3]
-    #
-    # C = 0
-    # for i in kr.clean_index:
-    #     if (int(i) + 1) not in clean_index:
-    #         C += 1
-    #
-    # B = len(kr.raw_list) - len(kr.cleaned_list) - A
-    # D = len(kr.cleaned_list) - C
-    # if A + B != 0:
-    #     precise = A / float(A + B) * 100
-    # else:
-    #     precise = 0
-    # if A + C != 0:
-    #     recall = A / float(A + C) * 100
-    # else:
-    #     recall = 0
-    # if precise + recall != 0:
-    #     F = precise * recall / (precise + recall) / 100
-    # else:
-    #     F = 0
-    # print 'AB is:      ' + str(A) + ' ' + str(B)
-    # print 'CD is:      ' + str(C) + ' ' + str(D)
-    # print 'precise is: ' + str(precise) + '%'
-    # print 'recall is:  ' + str(recall) + '%'
-    # print 'F is        ' + str(F)
-    # endregion
