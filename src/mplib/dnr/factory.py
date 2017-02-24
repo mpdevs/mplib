@@ -18,8 +18,8 @@ class DataDenoiser(object):
     list(list()) 其中list可以被替换成tuple, 别的不行
     所有去水工作都是逐行处理
     """
-    def __init__(self, data, content_index=0, head=["Content"]):
-        self.head = head
+    def __init__(self, data, content_index=0, head=None):
+        self.head = self.get_head(head)
         self.data = self.process(data)
         self.line = None
         self.content_index = content_index
@@ -159,6 +159,12 @@ class DataDenoiser(object):
             return smart_decode(data, cast=True)
         elif isinstance(data, pandas.DataFrame):
             return smart_decode(data.values.tolist(), cast=True)
+
+    def get_head(self, head):
+        if isinstance(head, list) or isinstance(head, tuple):
+            return smart_decode(head)
+        elif head is None:
+            return
 
     def get_content(self, line, content_index):
         try:
