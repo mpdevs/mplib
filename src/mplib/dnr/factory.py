@@ -153,7 +153,6 @@ class DataDenoiser(object):
         self.row_index = 0
         self.work_flow_list = []
 
-    @staticmethod
     def process(data):
         if isinstance(data, list) or isinstance(data, tuple):
             return smart_decode(data, cast=True)
@@ -302,7 +301,6 @@ class DataDenoiser(object):
         print "self.content = {}".format(self.content)
         print traceback.print_exc()
 
-    @time_elapse
     def run(self):
         """
         文本格式的处理
