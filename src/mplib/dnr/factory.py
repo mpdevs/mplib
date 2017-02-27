@@ -170,7 +170,7 @@ class DataDenoiser(object):
     def get_content(self, line, content_index):
         try:
             content = line[content_index]
-            if not content: self.set_noise_line()
+            if not content: self.skip_the_noise_line()
         except IndexError:
             self.error_info()
             content = ""
@@ -181,7 +181,7 @@ class DataDenoiser(object):
             try:
                 match_list = re.findall(re.compile(pattern=noise, flags=0), self.content)
                 if len(match_list) > match_count_threshold - 1:
-                    self.set_noise_line()
+                    self.skip_the_noise_line()
                     break
                 else:
                     continue
@@ -214,7 +214,7 @@ class DataDenoiser(object):
             noise_tag_char = len(char_list) - noise_tag_char
 
             if noise_tag_char < self.noise_tag_char or noise_tag_count >= self.noise_tag_count:
-                self.set_noise_line()
+                self.skip_the_noise_line()
 
         except:
             self.error_info()
@@ -222,7 +222,7 @@ class DataDenoiser(object):
     def find_noise_length(self):
         numbers = len(re.findall(re.compile(self.noise_length_unicode), self.content))
         if numbers < self.noise_length_min or numbers > self.noise_length_max:
-            self.set_noise_line()
+            self.skip_the_noise_line()
 
     def find_noise_series(self):
         self.noise_list_loop(self.noise_series_list, match_count_threshold=self.noise_series_threshold)
@@ -236,7 +236,7 @@ class DataDenoiser(object):
             match_list = re.findall(re.compile(pattern=self.noise_client_label), self.content)
             match_list = match_list[0].strip(u"><") if match_list else ""
             if match_list in self.noise_client_list:
-                self.set_noise_line()
+                self.skip_the_noise_line()
         except:
             self.error_info()
 
@@ -259,24 +259,24 @@ class DataDenoiser(object):
         if max_length_text_index == self.row_index:
             self.line[-1] = "False"
         else:
-            self.set_noise_line()
+            self.skip_the_noise_line()
             self.data[max_length_text_index][-1] = "False"
 
-    def bayes_classifier(self):
-        def string_preprocess(string):
-            raw_string = string
-            http_info = re.compile("[a-zA-z]+://[^\s]*")
-            string_without_http = http_info.sub(r"链接", raw_string)
-            at_info = re.compile(r"@[^ @，,。.]*")
-            string_without_http_and_at = at_info.sub(ur"@", string_without_http)
-            number_eng_info = re.compile(r"[0-9|a-zA-Z]")
-            clean_string = number_eng_info.sub("", string_without_http_and_at)
-            return clean_string
-        self.content = string_preprocess(self.content)
-        v = TfidfVectorizer(tokenizer=lambda x: jieba.cut(x), analyzer="word", stop_words=stop_words)
-        pass
+    # def bayes_classifier(self):
+    #     def string_preprocess(string):
+    #         raw_string = string
+    #         http_info = re.compile("[a-zA-z]+://[^\s]*")
+    #         string_without_http = http_info.sub(r"链接", raw_string)
+    #         at_info = re.compile(r"@[^ @，,。.]*")
+    #         string_without_http_and_at = at_info.sub(ur"@", string_without_http)
+    #         number_eng_info = re.compile(r"[0-9|a-zA-Z]")
+    #         clean_string = number_eng_info.sub("", string_without_http_and_at)
+    #         return clean_string
+    #     self.content = string_preprocess(self.content)
+    #     v = TfidfVectorizer(tokenizer=lambda x: jieba.cut(x), analyzer="word", stop_words=stop_words)
+    #     pass
 
-    def set_noise_line(self):
+    def skip_the_noise_line(self):
         self.line[-1] = "True"
         self.is_noise_line = True
 
@@ -293,15 +293,13 @@ class DataDenoiser(object):
         self.is_noise_line = False
         for work_flow in self.work_flow_list:
             if not self.is_noise_line: work_flow()
-
-    def start_df_work_flow(self):
-        for work_flow in self.work_flow_list:
-            self.data = self.data.apply(work_flow, axis=1)
+        self.data[self.row_index] = self.line
 
     def error_info(self):
-        print "self.line = {}".format(self.line)
-        print "self.content = {}".format(self.content)
-        print traceback.print_exc()
+        if not self.udf_support:
+            print "self.line = {}".format(self.line)
+            print "self.content = {}".format(self.content)
+            print traceback.print_exc()
 
     def run(self):
         """
@@ -313,8 +311,7 @@ class DataDenoiser(object):
         for self.row_index, self.line in enumerate(self.data):
             self.content = self.get_content(line=self.line, content_index=self.content_index)
             self.start_work_flow()
-            self.data[self.row_index] = self.line
-            print "\t".join([self.line[0], self.line[-1]])
+            print "\t".join([self.line[self.content_index], self.line[-1]])
         # print "data size: {0}, noise size: {1}".format(len(self.data), len(filter(lambda x: x[-1] == "True", self.data)))
 
 
