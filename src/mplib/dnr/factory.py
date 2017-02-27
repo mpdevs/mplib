@@ -152,6 +152,7 @@ class DataDenoiser(object):
         self.use_edit_distance = True
         self.row_index = 0
         self.work_flow_list = []
+        self.udf_support = False
 
     @staticmethod
     def process(data):
@@ -313,8 +314,8 @@ class DataDenoiser(object):
             self.content = self.get_content(line=self.line, content_index=self.content_index)
             self.start_work_flow()
             self.data[self.row_index] = self.line
-            # print "\t".join([self.content, self.line[-1]])
-            print "\t".join([self.line[self.content_index], self.line[-1]])
+            if self.udf_support:
+                print "\t".join([self.line[0], self.line[-1]])
         # print "data size: {0}, noise size: {1}".format(len(self.data), len(filter(lambda x: x[-1] == "True", self.data)))
 
 

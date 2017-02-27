@@ -28,8 +28,8 @@ try:
     #     except StopIteration:
     #         break
     data = [line for line in sys.stdin]
-    data = map(lambda x: smart_decode(x.replace(b"\n", b"").replace(b"\r", b"")).split("\t"), data)
-    dd = DataDenoiser(data)
+    data = map(lambda x: smart_decode(x).replace("\n", "").replace("\r", "").split("\t"), data)
+    dd = DataDenoiser(data=data, content_index=1, head=["id", "content"])
     dd.use_keywords = True
     dd.use_tag = False
     dd.use_length = True
@@ -37,6 +37,7 @@ try:
     dd.use_client = False
     dd.use_special_characters = False
     dd.use_edit_distance = False
+    dd.udf_support = True
     dd.run()
 except Exception as e:
     print "\t".join([str(e), traceback.format_exc()])
