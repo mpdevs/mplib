@@ -153,6 +153,7 @@ class DataDenoiser(object):
         self.row_index = 0
         self.work_flow_list = []
 
+    @staticmethod
     def process(data):
         if isinstance(data, list) or isinstance(data, tuple):
             return smart_decode(data, cast=True)
