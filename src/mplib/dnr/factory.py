@@ -311,7 +311,7 @@ class DataDenoiser(object):
         for self.row_index, self.line in enumerate(self.data):
             self.content = self.get_content(line=self.line, content_index=self.content_index)
             self.start_work_flow()
-            print "\t".join([self.line[self.content_index], self.line[-1]])
+            print "\t".join([self.line[0], self.line[-1]])
         # print "data size: {0}, noise size: {1}".format(len(self.data), len(filter(lambda x: x[-1] == "True", self.data)))
 
 
