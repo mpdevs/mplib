@@ -1,25 +1,40 @@
 # coding: utf-8
 # __author__: u"John"
 from __future__ import unicode_literals
-from mplib.common.settings import MYSQL_SETTINGS
+from mplib.common.settings import *
 from mplib.common import smart_decode
 import MySQLdb
 
 
-def db_connect(settings=MYSQL_SETTINGS):
-    connection = MySQLdb.Connect(**settings)
+def get_settings(env):
+    env_dict = dict(
+        das_pro=DAS_MYSQL_CONNECTION,
+        mpportal=MYSQL_SETTINGS,
+    )
+    return env_dict.get(env)
+
+
+def db_connect(env="das_pro"):
+    connection = MySQLdb.Connect(**get_settings(env))
     return connection
 
 
-def db_cursor(settings=MYSQL_SETTINGS):
-    cursor = MySQLdb.Connect(**settings).cursor()
+def db_cursor(env="das_pro"):
+    cursor = MySQLdb.Connect(**get_settings(env)).cursor()
     return cursor
 
 
 class MPMySQL(object):
 
-    def __init__(self, settings=MYSQL_SETTINGS):
-        self.settings = settings
+    def __init__(self, env="das_pro"):
+        self.settings = get_settings(env)
+
+    def get_settings(self):
+        env_dict = dict(
+            das=DAS_MYSQL_CONNECTION,
+            mpportal=MYSQL_SETTINGS,
+        )
+        self.settings = env_dict.get(self.env)
 
     def query(self, sql, dict_cursor=True, fetchone=False):
         conn = MySQLdb.connect(**self.settings)

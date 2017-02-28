@@ -8,6 +8,7 @@ import editdistance
 import traceback
 import pandas
 import jieba
+import json
 import re
 
 
@@ -287,7 +288,6 @@ class DataDenoiser(object):
         if self.use_series: self.work_flow_list.append(self.find_noise_series)
         if self.use_tag: self.work_flow_list.append(self.find_noise_tag)
         if self.use_edit_distance: self.work_flow_list.append(self.find_noise_edit_distance)
-        return
 
     def start_work_flow(self):
         self.is_noise_line = False
@@ -314,5 +314,12 @@ class DataDenoiser(object):
             print "\t".join([self.line[0], self.line[-1]])
         # print "data size: {0}, noise size: {1}".format(len(self.data), len(filter(lambda x: x[-1] == "True", self.data)))
 
+
+if __name__ == "__main__":
+    from mplib.IO import MySQL
+    db = MySQL(env="das_pro")
+    d = DataDenoiser([])
+    j = json.dumps(d.noise_client_list)
+    db.execute("insert into process_parameters (name, process_type, parameter_type, json_value, create_time, update_time) values ('微博客户端去水', 'weibo', 'client', '{0}', now(), now());".format(j))
 
 

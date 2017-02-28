@@ -11,6 +11,13 @@ MYSQL_SETTINGS = dict(
     db="mp_portal",
 )
 
+DAS_MYSQL_CONNECTION = dict(
+    host="172.16.1.100",
+    port=3306,
+    user="das",
+    passwd="123",
+    db="das",
+)
 
 HIVE_CONNECTION = dict(
     database="das",
