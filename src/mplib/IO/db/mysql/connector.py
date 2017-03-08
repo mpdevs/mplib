@@ -1,28 +1,34 @@
 # coding: utf-8
 # __author__: u"John"
 from __future__ import unicode_literals
-from mplib.common.settings import MYSQL_SETTINGS
+from mplib.common.settings import MYSQL_SETTINGS, DAS_PRO_MYSQL_CONNECTION
 from mplib.common import smart_decode
 import MySQLdb
 
 
-def db_connect(settings=MYSQL_SETTINGS):
-    connection = MySQLdb.Connect(**settings)
-    return connection
+def get_env(env="das_pro"):
+    env_dict = dict(
+        das_pro=DAS_PRO_MYSQL_CONNECTION,
+        mpportal=MYSQL_SETTINGS,
+    )
+    return env_dict.get(env, DAS_PRO_MYSQL_CONNECTION)
 
 
-def db_cursor(settings=MYSQL_SETTINGS):
-    cursor = MySQLdb.Connect(**settings).cursor()
-    return cursor
+def db_connect(env="das_pro"):
+    return MySQLdb.Connect(**get_env(env))
+
+
+def db_cursor(env="das_pro"):
+    return MySQLdb.Connect(**get_env(env)).cursor()
 
 
 class MPMySQL(object):
 
-    def __init__(self, settings=MYSQL_SETTINGS):
-        self.settings = settings
+    def __init__(self, env="das_pro"):
+        self.env=env
 
-    def query(self, sql, dict_cursor=True, fetchone=False):
-        conn = MySQLdb.connect(**self.settings)
+    def query(self, sql, dict_cursor=True, fetchone=False, cast=True):
+        conn = db_connect(env=self.env)
         cursor = conn.cursor(MySQLdb.cursors.DictCursor) if dict_cursor else conn.cursor()
         cursor.execute(sql)
         try:
@@ -31,16 +37,19 @@ class MPMySQL(object):
             print "error message:{0}".format(e)
             return False
         else:
-            return [smart_decode(r) for r in ret]
+            if cast:
+                return smart_decode(ret)
+            else:
+                return ret
         finally:
             cursor.close()
             conn.close()
 
     def execute(self, sql):
-        conn = MySQLdb.connect(**self.settings)
+        conn = db_connect(env=self.env)
         cursor = conn.cursor()
         try:
-            cursor.execute(sql)
+            cursor.execute(sql if isinstance(sql, str) else sql.encode("utf8"))
             conn.commit()
         except Exception as e:
             print "error message:{0}".format(e)
@@ -52,7 +61,7 @@ class MPMySQL(object):
             conn.close()
 
     def execute_many(self, sql, args):
-        conn = MySQLdb.connect(**self.settings)
+        conn = db_connect(env=self.env)
         cursor = conn.cursor()
         try:
             cursor.executemany(sql, args)

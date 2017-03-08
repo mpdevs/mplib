@@ -37,8 +37,10 @@ src/mplib/dnr/factory.py
 src/mplib/dnr/factory_kun.py
 src/mplib/dnr/helper.py
 src/mplib/dnr/t.py
-src/mplib/dnr/udf_denoise.py
 src/mplib/dnr/udf_tag.py
+src/mplib/dnr/udf/__init__.py
+src/mplib/dnr/udf/udf_denoise.py
+src/mplib/dnr/udf/udf_denoise_motherbaby.py
 src/mplib/regexp_tools/__init__.py
 src/mplib/regexp_tools/reg_abc.py
 src/mplib/regexp_tools/test.py

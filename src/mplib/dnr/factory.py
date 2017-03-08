@@ -1,7 +1,7 @@
 # coding: utf-8
 # __author__: u"John"
 from __future__ import unicode_literals
-from mplib.common import smart_decode, time_elapse
+from mplib.common import smart_decode, time_elapse, smart_encode
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 import editdistance
@@ -144,13 +144,13 @@ class DataDenoiser(object):
         self.valid_unicode = "[\u3007\u4E00-\u9FCB\uE815-\uE864]"
         self.noise_edit_distance_threshold = 5
         self.split_data_set = False
-        self.use_keywords = True
-        self.use_tag = True
-        self.use_length = True
-        self.use_series = True
-        self.use_client = True
-        self.use_special_characters = True
-        self.use_edit_distance = True
+        self.use_keywords = False
+        self.use_tag = False
+        self.use_length = False
+        self.use_series = False
+        self.use_client = False
+        self.use_special_characters = False
+        self.use_edit_distance = False
         self.row_index = 0
         self.work_flow_list = []
         self.udf_support = False
@@ -317,9 +317,8 @@ class DataDenoiser(object):
 
 if __name__ == "__main__":
     from mplib.IO import MySQL
-    db = MySQL(env="das_pro")
     d = DataDenoiser([])
-    j = json.dumps(d.noise_client_list)
-    db.execute("insert into process_parameters (name, process_type, parameter_type, json_value, create_time, update_time) values ('微博客户端去水', 'weibo', 'client', '{0}', now(), now());".format(j))
-
+    j = json.dumps(dict(noise_client_list=",".join(d.noise_client_list)))
+    db = MySQL()
+    db.execute("insert into das.process_parameters (name, platform, process_type, parameter_type, json_value, create_time, update_time) values ('微博客户端去水', 'weibo', 'common', 'client', '{0}', now(), now());".format(j))
 

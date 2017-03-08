@@ -14,14 +14,11 @@ try:
     data = map(lambda x: smart_decode(x).replace("\n", "").replace("\r", "").split("\t"), data)
     dd = DataDenoiser(data=data, content_index=1, head=["id", "content"])
     dd.use_keywords = True
-    dd.use_tag = False
+    dd.noise_keywords_list = []
     dd.use_length = True
-    dd.use_series = False
-    dd.use_client = False
-    dd.use_special_characters = False
-    dd.use_edit_distance = False
+    dd.noise_length_min = 0
+    dd.noise_length_max = 5
     dd.udf_support = True
     dd.run()
 except Exception as e:
-    print "\t".join([str(e), traceback.format_exc()])
-
+    print "\t".join(["ERROR", traceback.format_exc()])

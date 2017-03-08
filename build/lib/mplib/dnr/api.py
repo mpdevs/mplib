@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from mplib.common import time_elapse
 from factory import DataDenoiser
 import pandas
+import json
 import io
 
 
@@ -54,6 +55,30 @@ def write_text_file(file_path, head, data):
         f.write("\t".join(head) + "\n")
         for line in data:
             f.write("\t".join(line) + "\n")
+
+
+def das_denoise(data, para_json):
+    """
+    Hive on Spark的分布式环境中的api
+    数据由sys.stdin传入, 参数由mysql的json_value来决定
+    :return: 已经配置好参数的降噪类创建的对象
+    """
+    para_dict = json.loads(para_json)
+    dd = DataDenoiser(data=data, content_index=1, head=["id", "content"])
+    dd.use_keywords = para_dict.get("use_keywords", False)
+    dd.noise_keywords_list = para_dict.get("noise_keywords_list") if para_dict.get("noise_keywords_list") else dd.noise_keywords_list
+    dd.use_series = para_dict.get("use_series", False)
+    dd.use_tag = para_dict.get("use_tag", False)
+    dd.use_length = para_dict.get("use_length", False)
+    dd.noise_length_min = para_dict.get("noise_length_min") if para_dict.get("noise_length_min") else dd.noise_length_min
+    dd.use_client = para_dict.get("use_client", False)
+    dd.noise_client_label = para_dict.get("noise_client_label") if para_dict.get("noise_client_label") else dd.noise_client_label
+    dd.noise_client_list = para_dict.get("noise_client_list") if para_dict.get("noise_client_list") else dd.noise_client_list
+    dd.use_edit_distance = para_dict.get("use_edit_distance", False)
+    dd.noise_edit_distance_threshold = para_dict.get("noise_edit_distance_threshold") if para_dict.get("noise_edit_distance_threshold") else dd.noise_edit_distance_threshold
+    dd.use_special_character = para_dict.get("use_special_character", False)
+    dd.udf_support = True
+    dd.run()
 
 
 if __name__ == "__main__":
