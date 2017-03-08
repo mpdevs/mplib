@@ -27,7 +27,27 @@ class DataDenoiser(object):
         self.content = ""
         self.noise_tag_column_name = "is_noise"
         self.is_noise_line = False
-        self.noise_keywords_list = ["咨询", "关键词", "(正|则|表|达|式)"]
+        self.noise_keywords_list = [
+            "分享",
+            "真的",
+            "新歌",
+            "红包",
+            "小伙伴",
+            "围观",
+            "领取",
+            "加入",
+            "升级",
+            "女神",
+            "提供",
+            "速度",
+            "快来",
+            "美女",
+            "惊喜",
+            "丰富",
+            "激动",
+            "表现",
+            "少年",
+        ]
         self.noise_tag_emoji = "\[.*?]"
         self.noise_tag_brackets = "【.*?】|★|◆"
         self.noise_tag_label = "#.*?#"

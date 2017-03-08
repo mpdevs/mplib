@@ -17,3 +17,9 @@ with io.open("通用去水--母婴论坛贴吧.txt", "r", encoding="utf8") as f:
     data = map(transformer, [i for i in f])
     for line in data:
         print "'{0}',".format(line)
+
+print_line()
+with io.open("通用去水-微博.txt", "r", encoding="utf8") as f:
+    data = map(transformer, [i for i in f])
+    for line in data:
+        print "'{0}',".format(line)
