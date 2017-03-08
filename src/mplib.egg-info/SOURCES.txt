@@ -41,6 +41,7 @@ src/mplib/dnr/udf_tag.py
 src/mplib/dnr/udf/__init__.py
 src/mplib/dnr/udf/udf_denoise.py
 src/mplib/dnr/udf/udf_denoise_motherbaby.py
+src/mplib/dnr/udf/udf_denoise_weibo.py
 src/mplib/regexp_tools/__init__.py
 src/mplib/regexp_tools/reg_abc.py
 src/mplib/regexp_tools/test.py
