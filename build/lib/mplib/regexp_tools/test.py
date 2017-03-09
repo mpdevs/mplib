@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: UTF-8 -*-
 import re
 from reg_abc import reg_abc
@@ -20,6 +19,7 @@ def unit_test(regexp_para,test_case):
         except Exception as e:
             # print e
             print "reg_abc怎么还有bug？"
+
 if __name__ == "__main__":
     # 字典结构：{中心词(值、距离、逻辑)，前缀词(值、距离、逻辑)，后缀词(值、距离、逻辑)}，中心距离只能为空，前后缀值/距离/逻辑应该同时存在或不存在。
     # 测试文本：[(字符串,Y/N),(字符串,Y/N),(字符串,Y/N)]，对同一个字典做一系列测试，输出匹配错误的case

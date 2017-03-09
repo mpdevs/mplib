@@ -11,25 +11,7 @@ sys.setdefaultencoding("utf8")
 
 
 keywords = [
-    "分享",
-    "真的",
-    "新歌",
-    "红包",
-    "小伙伴",
-    "围观",
-    "领取",
-    "加入",
-    "升级",
-    "女神",
-    "提供",
-    "速度",
-    "快来",
-    "美女",
-    "惊喜",
-    "丰富",
-    "激动",
-    "表现",
-    "少年",
+    "此用户没有填写评论",
 ]
 
 try:
@@ -38,9 +20,6 @@ try:
     dd = DataDenoiser(data=data, content_index=1, head=["id", "content"])
     dd.use_keywords = True
     dd.noise_keywords_list = keywords
-    dd.use_length = True
-    dd.noise_length_min = 5
-    dd.noise_length_max = 500
     dd.udf_support = True
     dd.run()
 except Exception as e:
