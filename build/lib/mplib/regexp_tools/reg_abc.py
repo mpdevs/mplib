@@ -6,6 +6,7 @@ from mplib.common.unicode_tools import smart_decode
 
 def reg_abc(regexp_para):
     # 赋值
+    regexp_para = smart_decode(regexp_para)
     m = regexp_para["head"]["distance"]
     n = regexp_para["tail"]["distance"]
     o = regexp_para["center"]["distance"]
@@ -103,6 +104,6 @@ def reg_abc(regexp_para):
     # 不包含中心词，有前后缀
     pass
     # 返回正则表达式
-    regexp_out = smart_decode(regexp_out)
     return regexp_out
+
 
