@@ -1,13 +1,13 @@
 # coding: utf-8
 # __author__: u"John"
-from __future__ import unicode_literals
+# from __future__ import unicode_literals
 from mplib.common import smart_decode, time_elapse, smart_encode
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.naive_bayes import MultinomialNB
+# from sklearn.feature_extraction.text import TfidfVectorizer
+# from sklearn.naive_bayes import MultinomialNB
 import editdistance
 import traceback
 import pandas
-import jieba
+# import jieba
 import json
 import re
 
@@ -255,7 +255,7 @@ class DataDenoiser(object):
         """
         try:
             match_list = re.findall(re.compile(pattern=self.noise_client_label), self.content)
-            match_list = match_list[0].strip(u"><") if match_list else ""
+            match_list = match_list[0].strip("><") if match_list else ""
             if match_list in self.noise_client_list:
                 self.skip_the_noise_line()
         except:
@@ -302,10 +302,10 @@ class DataDenoiser(object):
         self.is_noise_line = True
 
     def generate_work_flow(self):
-        if self.use_keywords: self.work_flow_list.append(self.find_noise_keywords)
         if self.use_length: self.work_flow_list.append(self.find_noise_length)
-        if self.use_client: self.work_flow_list.append(self.find_noise_client)
         if self.use_series: self.work_flow_list.append(self.find_noise_series)
+        if self.use_keywords: self.work_flow_list.append(self.find_noise_keywords)
+        if self.use_client: self.work_flow_list.append(self.find_noise_client)
         if self.use_tag: self.work_flow_list.append(self.find_noise_tag)
         if self.use_edit_distance: self.work_flow_list.append(self.find_noise_edit_distance)
 

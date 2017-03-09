@@ -1,8 +1,8 @@
 # coding: utf-8
 # __author__: u"John"
-from __future__ import unicode_literals
+# from __future__ import unicode_literals
 from mplib.dnr.factory import DataDenoiser
-from mplib.common import smart_decode
+from mplib.common import smart_encode
 import traceback
 import sys
 
@@ -103,7 +103,7 @@ keywords = [
 
 try:
     data = [line for line in sys.stdin]
-    data = map(lambda x: smart_decode(x).replace("\n", "").replace("\r", "").split("\t"), data)
+    data = map(lambda x: smart_encode(x).replace("\n", "").replace("\r", "").split("\t"), data)
     dd = DataDenoiser(data=data, content_index=1, head=["id", "content"])
     dd.use_keywords = True
     dd.noise_keywords_list = keywords
