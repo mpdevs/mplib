@@ -1,6 +1,7 @@
 # coding: utf-8
 # __author__: u"John"
 from __future__ import unicode_literals
+import numbers
 import chardet
 
 
@@ -9,11 +10,16 @@ def smart_decode(obj, cast=False):
     处理中文编码，根据要求返回unicode
     目前仅能处理 basestring, numeric, list, tuple, dict类型
     :param obj:
-    :param cast: 是否需要将所有元素都转换成unicode
+    :param cast: 是否需要将数值类型的元素都转换成unicode
     :return:
     """
-    if isinstance(obj, int) or isinstance(obj, long) or isinstance(obj, float) or isinstance(obj, unicode):
-        return unicode(obj) if cast else obj
+    if isinstance(obj, numbers.Number):
+        if cast:
+            return unicode(obj)
+        else:
+            return obj
+    elif isinstance(obj, unicode):
+        return obj
     elif isinstance(obj, str):
         try:
             return obj.decode("utf8")
@@ -32,32 +38,48 @@ def smart_decode(obj, cast=False):
         except UnicodeDecodeError:
             return obj
     elif isinstance(obj, list):
-        return [smart_decode(i) for i in obj]
+        return [smart_decode(i, cast=cast) for i in obj]
     elif isinstance(obj, dict):
-        return {smart_decode(k): smart_decode(v) for k, v in obj.iteritems()}
+        return {smart_decode(k, cast=cast): smart_decode(v, cast=cast) for k, v in obj.iteritems()}
     elif isinstance(obj, tuple):
-        return tuple([smart_decode(i) for i in obj])
+        return tuple([smart_decode(i, cast=cast) for i in obj])
     else:
         return obj
 
 
-def smart_encode(obj, charset="utf8"):
+def smart_encode(obj, charset="utf8", cast=False):
     """
     处理Unicode编码，根据需求返回str
     :param obj:
     :param charset:
+    :param cast: 是否需要将数值类型的元素转换成字符串
     :return:
     """
-    try:
+    if isinstance(obj, unicode):
         return obj.encode(charset)
-    except UnicodeEncodeError:
-        return obj
+    elif isinstance(obj, numbers.Number):
+        if cast:
+            return str(obj)
+        else:
+            return obj
+    elif isinstance(obj, str):
+        try:
+            obj.decode(charset)
+            return obj
+        except UnicodeDecodeError:
+            return smart_decode(obj, cast=cast).encode(charset)
+    elif isinstance(obj, list):
+        return [smart_encode(i, cast=cast) for i in obj]
+    elif isinstance(obj, dict):
+        return {smart_encode(k, cast=cast): smart_encode(v, cast=cast) for k, v in obj.iteritems()}
+    elif isinstance(obj, tuple):
+        return tuple([smart_encode(i, cast=cast) for i in obj])
 
 
 def change_charset(obj, to_charset="utf8"):
     """
     将对象的编码转换成指定的编码
-    目前只处理basestring, list, tuple, dict对象, numeric类型不作处理
+    目前只处理basestring, list, tuple, dict对象, 数值类型不作处理
     :param obj:
     :param to_charset:
     :return:
@@ -71,7 +93,7 @@ def change_charset(obj, to_charset="utf8"):
         except UnicodeDecodeError:
             return obj
 
-    elif isinstance(obj, int) or isinstance(obj, float) or isinstance(obj, long):
+    elif isinstance(obj, numbers.Number):
         return obj
 
     elif isinstance(obj, list):
@@ -100,7 +122,7 @@ def to_unicode(obj):
     elif isinstance(obj, str):
         return smart_decode(obj)
 
-    elif isinstance(obj, int) or isinstance(obj, list) or isinstance(obj, dict) or isinstance(obj, tuple):
+    elif isinstance(obj, numbers.Number) or isinstance(obj, list) or isinstance(obj, dict) or isinstance(obj, tuple):
         return unicode(obj)
 
     else:
@@ -117,5 +139,7 @@ if __name__ == "__main__":
         ("tuple[0]", b"元组", "奇怪的编码".encode("gb2312"))
     ]
     for test_obj in test_objs:
-        print smart_decode(test_obj)
-
+        print smart_decode(test_obj, cast=True), type(smart_decode(test_obj, cast=True))
+    for test_obj in test_objs:
+        print smart_encode(test_obj, cast=True), type(smart_encode(test_obj, cast=True))
+    print smart_decode(test_objs, cast=True)

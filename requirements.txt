@@ -8,3 +8,4 @@ mysql-python==1.2.5
 psycopg2==2.6.2
 pyhs2==0.6.0
 impyla==0.14.0
+editdistance==0.3.1
