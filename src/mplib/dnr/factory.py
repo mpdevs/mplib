@@ -329,9 +329,12 @@ class DataDenoiser(object):
         self.data = [[] * len(self.head) + ["False"] if not self.line else self.line + ["False"] for self.line in self.data]
         self.generate_work_flow()
         for self.row_index, self.line in enumerate(self.data):
-            self.content = self.get_content(line=self.line, content_index=self.content_index)
-            self.start_work_flow()
-            print "\t".join([self.line[0], self.line[-1]])
+            try:
+                self.content = self.get_content(line=self.line, content_index=self.content_index)
+                self.start_work_flow()
+                print "\t".join([self.line[0], self.line[-1]])
+            except:
+                print "ERROR\trun ERROR"
         # print "data size: {0}, noise size: {1}".format(len(self.data), len(filter(lambda x: x[-1] == "True", self.data)))
 
 
