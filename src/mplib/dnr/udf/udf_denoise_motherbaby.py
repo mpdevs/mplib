@@ -113,4 +113,4 @@ try:
     dd.udf_support = True
     dd.run()
 except Exception as e:
-    print "\t".join(["ERROR", traceback.format_exc()])
+    print "\t".join(["ERROR", traceback.format_exc().replace("\t", " ").replace("\n", " ")])

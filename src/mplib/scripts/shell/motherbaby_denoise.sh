@@ -73,9 +73,22 @@ SELECT TRANSFORM(id, content) USING 'python udf_denoise_motherbaby_201703100451.
 FROM motherbaby_post
 WHERE platform_id = '1016';
 
+
+
+
+
+USE transforms;
+ADD FILE /home/udflib/udf_denoise_motherbaby_201703101416.py;
 DROP TABLE IF EXISTS motherbaby_post_1017_noise;
 CREATE TABLE motherbaby_post_1017_noise(id STRING, is_noise STRING) STORED AS ORC;
 INSERT INTO motherbaby_post_1017_noise
-SELECT TRANSFORM(id, content) USING 'python udf_denoise_motherbaby_201703100451.py' AS (id, is_noise)
-FROM motherbaby_post
-WHERE platform_id = '1017';
+SELECT TRANSFORM(id, content) USING 'python udf_denoise_motherbaby_201703101416.py' AS (id, is_noise)
+FROM motherbaby_post_1017_limit_10000;
+
+
+with t as (
+select count(*) as cnt , length(content) as len
+from motherbaby_post_1007
+group by length(content)
+)
+select * from t order by len desc limit 30;

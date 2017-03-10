@@ -317,9 +317,7 @@ class DataDenoiser(object):
 
     def error_info(self):
         if not self.udf_support:
-            print "self.line = {}".format(self.line)
-            print "self.content = {}".format(self.content)
-            print traceback.print_exc()
+            print "ERROR\tself.line = {0} self.content = {1}".format(self.line, self.content)
 
     def run(self):
         """
