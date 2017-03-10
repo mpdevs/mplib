@@ -302,10 +302,10 @@ class DataDenoiser(object):
         self.is_noise_line = True
 
     def generate_work_flow(self):
-        if self.use_keywords: self.work_flow_list.append(self.find_noise_keywords)
         if self.use_length: self.work_flow_list.append(self.find_noise_length)
-        if self.use_client: self.work_flow_list.append(self.find_noise_client)
         if self.use_series: self.work_flow_list.append(self.find_noise_series)
+        if self.use_keywords: self.work_flow_list.append(self.find_noise_keywords)
+        if self.use_client: self.work_flow_list.append(self.find_noise_client)
         if self.use_tag: self.work_flow_list.append(self.find_noise_tag)
         if self.use_edit_distance: self.work_flow_list.append(self.find_noise_edit_distance)
 

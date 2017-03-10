@@ -101,10 +101,14 @@ keywords = [
 ]
 
 
+def swap(lst):
+    return [lst[1], lst[0]]
+
+
 try:
     data = [line for line in sys.stdin]
-    data = map(lambda x: smart_decode(x).replace("\n", " ").replace("\r", " ").replace("\\N", "").split("\t"), data)
-    dd = DataDenoiser(data=data, content_index=1, head=["id", "content"])
+    data = map(lambda x: swap(smart_decode(x).replace("\n", " ").replace("\r", " ").replace("\\N", "").split("\t")), data)
+    dd = DataDenoiser(data=data, content_index=0, head=["content", "id"])
     dd.use_keywords = True
     dd.noise_keywords_list = keywords
     dd.use_length = True

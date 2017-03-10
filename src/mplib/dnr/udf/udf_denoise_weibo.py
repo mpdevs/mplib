@@ -32,9 +32,14 @@ keywords = [
     "少年",
 ]
 
+
+def swap(lst):
+    return [lst[1], lst[0]]
+
+
 try:
     data = [line for line in sys.stdin]
-    data = map(lambda x: smart_decode(x).replace("\n", "").replace("\r", "").split("\t"), data)
+    data = map(lambda x: swap(smart_decode(x).replace("\n", "").replace("\r", "").split("\t")), data)
     dd = DataDenoiser(data=data, content_index=1, head=["id", "content"])
     dd.use_keywords = True
     dd.noise_keywords_list = keywords
@@ -44,4 +49,4 @@ try:
     dd.udf_support = True
     dd.run()
 except Exception as e:
-    print "\t".join(["ERROR", traceback.format_exc()])
+    print "\t".join(["ERROR", traceback.format_exc().replace("\t", " ").replace("\n", " ")])
