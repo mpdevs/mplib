@@ -255,7 +255,7 @@ class DataDenoiser(object):
         """
         try:
             match_list = re.findall(re.compile(pattern=self.noise_client_label), self.content)
-            match_list = match_list[0].strip(u"><") if match_list else ""
+            match_list = match_list[0].strip("><") if match_list else ""
             if match_list in self.noise_client_list:
                 self.skip_the_noise_line()
         except:
@@ -317,7 +317,7 @@ class DataDenoiser(object):
 
     def error_info(self):
         if not self.udf_support:
-            print "ERROR\tself.line = {0} self.content = {1}".format(self.line, self.content)
+            print "ERROR\tself.line = {0};self.content = {1}; error_info = {2}".format(self.line, self.content, traceback.format_exc().replace("\t", " ").replace("\n", " "))
 
     def run(self):
         """
