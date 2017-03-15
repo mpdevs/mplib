@@ -1,6 +1,6 @@
 USE l_medicine;
 
-INSERT INTO post
+INSERT INTO post_inquiry
 SELECT
     s.id,
     s.channel,

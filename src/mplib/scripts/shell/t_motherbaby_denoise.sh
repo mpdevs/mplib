@@ -89,9 +89,9 @@ FROM motherbaby_post_1007;
 
 USE transforms;
 ADD FILE /home/udflib/udf_denoise_motherbaby_201703110156.py;
-DROP TABLE IF EXISTS motherbaby_post_noise;
-CREATE TABLE motherbaby_post_noise(id STRING, is_noise STRING) STORED AS ORC;
-INSERT INTO motherbaby_post_noise
+DROP TABLE IF EXISTS motherbaby_post_1_noise;
+CREATE TABLE motherbaby_post_1_noise(id STRING, is_noise STRING) STORED AS ORC;
+INSERT INTO motherbaby_post_1_noise
 SELECT TRANSFORM(content, id) USING 'python udf_denoise_motherbaby_201703110156.py' AS (id, is_noise)
-FROM motherbaby_post;
+FROM motherbaby_post_1;
 
