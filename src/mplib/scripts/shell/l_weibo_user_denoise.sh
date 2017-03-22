@@ -13,7 +13,7 @@ HAVING COUNT(*) >= 5;
 
 USE l_socialmedia;
 DROP TABLE IF EXISTS user_tmp;
-CREATE TABLE user_tmp LIKE user;
+CREATE TABLE user_tmp LIKE transforms.socialmedia_weibo_user;
 
 INSERT INTO user_tmp
 SELECT
@@ -46,7 +46,7 @@ SELECT
     u.created_at,
     u.updated_at,
     CASE WHEN n.user_id IS NULL THEN 0 ELSE 1 END AS noise
-FROM user AS u
+FROM transforms.socialmedia_weibo_user AS u
 LEFT JOIN transforms.socialmedia_weibo_user_noise AS n
 ON u.user_id = n.user_id;
 

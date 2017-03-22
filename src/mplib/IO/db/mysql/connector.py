@@ -75,6 +75,10 @@ class MPMySQL(object):
             cursor.close()
             conn.close()
 
+    @staticmethod
+    def get_connect(self):
+        return db_connect(env=self.env)
+
 
 if __name__ == "__main__":
     print MPMySQL().query("SELECT now() AS time;", fetchone=True)

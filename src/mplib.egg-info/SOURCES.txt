@@ -30,6 +30,12 @@ src/mplib/common/helpers.py
 src/mplib/common/settings.py
 src/mplib/common/trees.py
 src/mplib/common/unicode_tools.py
+src/mplib/competition/__init__.py
+src/mplib/competition/api.py
+src/mplib/competition/db_api.py
+src/mplib/competition/factory.py
+src/mplib/competition/helper.py
+src/mplib/competition/sql_constant.py
 src/mplib/dnr/__init__.py
 src/mplib/dnr/api.py
 src/mplib/dnr/api_kun.py

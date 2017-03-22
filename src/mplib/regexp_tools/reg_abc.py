@@ -1,5 +1,5 @@
-#!/usr/bin/python
 # -*- coding: UTF-8 -*-
+# __author__: "Zhoujianfeng"
 from __future__ import unicode_literals
 from mplib.common.unicode_tools import smart_decode
 
