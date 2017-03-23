@@ -312,7 +312,10 @@ class DataDenoiser(object):
     def start_work_flow(self):
         self.is_noise_line = False
         for work_flow in self.work_flow_list:
-            if not self.is_noise_line: work_flow()
+            if self.is_noise_line:
+                break
+            else:
+                work_flow()
         self.data[self.row_index] = self.line
 
     def error_info(self):
