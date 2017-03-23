@@ -6,6 +6,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.naive_bayes import GaussianNB
+from mplib.common import time_elapse
 from sklearn.svm import SVC
 from db_api import *
 from helper import *
@@ -17,6 +18,7 @@ import numpy
 class CalculateCompetitiveItems(object):
     # region 内部所有属性的初始化
     # 舊的 source table: "itemmonthlysales2015"
+    @time_elapse
     def __init__(
             self,
             industry="mp_women_clothing",
@@ -107,6 +109,7 @@ class CalculateCompetitiveItems(object):
 
     # endregion
 
+    @time_elapse
     def build_train_raw_feature(self):
         """
         崴
@@ -134,6 +137,7 @@ class CalculateCompetitiveItems(object):
         )
         return None
 
+    @time_elapse
     def get_result(self):
         """
         获取人工标注结果
@@ -143,6 +147,7 @@ class CalculateCompetitiveItems(object):
         return
 
     # region 特征(feature)构造
+    @time_elapse
     def build_train_feature(self):
         """
         构建所有训练数据(人工标注数据)的特征
@@ -175,6 +180,7 @@ class CalculateCompetitiveItems(object):
         col = ["ID_customer", "ID_competitor"] + [i for i in self.tag_dict[self.category_id].keys()] + ["Label"]
         return
 
+    @time_elapse
     def build_train_negative_feature(self):
         """
         构建没有标注过的负例数据, 默认所有未标注数据都为负例数据
@@ -227,6 +233,7 @@ class CalculateCompetitiveItems(object):
         col = ["ID_customer", "ID_competitor"] + [i for i in self.tag_dict[self.category_id].keys()]
         return
 
+    @time_elapse
     def build_prediction_feature(self):
         """
         随机抽取用于预测的数据(非人工标注)
@@ -293,6 +300,7 @@ class CalculateCompetitiveItems(object):
     # endregion
 
     # region 計算word vector距離
+    @time_elapse
     def get_train_distance(self):
         """
         生成正例基於word vector的距離特徵
@@ -321,6 +329,7 @@ class CalculateCompetitiveItems(object):
         train_positive = separate_positive_negative(train, threshold)
         return
 
+    @time_elapse
     def get_prediction_distance(self):
         """
         生成預測數據的基於word vector距離特徵
@@ -364,6 +373,7 @@ class CalculateCompetitiveItems(object):
     # end region
 
     # region 模型训练和预测
+    @time_elapse
     def easyensemble_prediction(self):
         """
         隨機負採樣，並集成八個模型預測概率
@@ -446,10 +456,10 @@ class CalculateCompetitiveItems(object):
                     features_importance = pandas.Series(model.feature_importances_, index=X.columns.values)
 
             prediction_proba_dict[self.category_id] = prediction_proba
-
     # endregion
 
     # region 程序入口
+    @time_elapse
     def run(self):
         """
         1. 读数据库
@@ -460,7 +470,6 @@ class CalculateCompetitiveItems(object):
         6. 数据会进行分割，先按CategoryID，再按DaterRange进行双重循环
         :return:
         """
-
         for cid in (self.category_dict.keys()):
             self.category_id = cid
             # self.get_result()

@@ -274,10 +274,10 @@ def construct_prediction_raw_feature(raw_data, tag_dict, labeling=True):
             if key not in tag_dict and labeling is True:
                 continue
             else:
-                values = ''
+                values = b""
                 for value in attr[key]:
                     values += value
-                    values += ","
+                    values += b","
                 temp[key] = [values]
 
         if temp.shape[0] == 0:
@@ -728,9 +728,9 @@ def create_dummy_attr(file_name_prefix, category):
     :param category: int
     :return: DataFrame
     """
-    # need enoding so that we can compare it with unicode(材质成分)
+    # need encoding so that we can compare it with unicode(材质成分)
     attr = pandas.read_csv("{0}{1}.csv".format(file_name_prefix, category), encoding="utf-8-sig")
-    # 用attr.dorp會出現error
+    # 用attr.drop會出現error
     attr = attr.ix[:, attr.columns != "材质成分"]
     attr = attr.ix[:, attr.columns != "品牌"]
 
@@ -790,11 +790,15 @@ def generate_distance_df(attr, dummy, data_set, column_word_vector_dict, word_ve
         # if sum(distance[col].notnull()) == 0 or sum(distance[col]) < 0.1:
         #     distance.drop(col, inplace=True, axis=1)
 
-        if sum(distance[col].notnull()) == 0:
-            distance.drop(col, inplace=True, axis=1)
+        try:
+            if sum(distance[col].notnull()) == 0:
+                distance.drop(col, inplace=True, axis=1)
+        except:
             print "Null:", col
-        if sum(distance[col]) == 0:
-            distance.drop(col, inplace=True, axis=1)
+        try:
+            if sum(distance[col]) == 0:
+                distance.drop(col, inplace=True, axis=1)
+        except:
             print "Zeros:", col
 
     # Training set 需要有label

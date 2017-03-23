@@ -106,6 +106,7 @@ def get_competitor_shop_items(db, table, category_id, date_range):
     ORDER BY RAND()
     LIMIT 3000;
     """
+    print sql.format(table, category_id, date_range, db)
     return pandas.read_sql_query(sql.format(table, category_id, date_range, db), get_mysql_connect(env="mpportal"))
 
 
