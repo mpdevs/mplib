@@ -1,8 +1,16 @@
 # coding: utf-8
 # __author__: u"John"
 from __future__ import unicode_literals
-from helper import parse_essential_dimension as ped
-from mplib.IO import MySQL
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.naive_bayes import GaussianNB
+from mplib.common import time_elapse
+from sklearn.svm import SVC
+from db_api import *
+from helper import *
+# import xgboost
 import pandas
 import numpy
 
@@ -10,6 +18,7 @@ import numpy
 class CalculateCompetitiveItems(object):
     # region 内部所有属性的初始化
     # 舊的 source table: "itemmonthlysales2015"
+    @time_elapse
     def __init__(
             self,
             industry="mp_women_clothing",
@@ -27,18 +36,13 @@ class CalculateCompetitiveItems(object):
         self.customer_shop_id = shop_id
         self.date_range = get_max_date_range(db=self.industry, table=self.source_table)
         self.date_range_list = None
-        info("{0} 正在获取品类信息... ".format(datetime.now()))
         self.category_dict = {int(row[0]): row[1] for row in get_categories(db=self.industry)}
         self.category_id = cid
         # 用来将商品标签向量化
-        info("{0} 正在抽取标签元数据... ".format(datetime.now()))
         self.attribute_meta = get_attribute_meta(db=self.industry)
-
-        self.feature_type = 'Jaccard'
-        # self.items_attributes = None
+        self.feature_type = "Jaccard"
         # key=CategoryID value=CategoryName
         # CID: CNAME
-        info("{0} 正在生成商品的标签dict... ".format(datetime.now()))
         self.tag_dict = tag_to_dict(df=transform_attr_value_dict(self.attribute_meta))
         self.training_data = None
         self.new_training_data = None
@@ -62,21 +66,19 @@ class CalculateCompetitiveItems(object):
         # region 可选
         # 必要维度法
         self.use_essential_tag_dict = use_essential_tag_dict
-        self.essential_tag_data = pandas.read_csv('essential_tag_data.csv', encoding='utf8')
-        self.essential_tag_dict_all = ped(self.essential_tag_data) if self.use_essential_tag_dict else None
+        self.essential_tag_data = pandas.read_csv("essential_tag_data.csv", encoding="utf8")
+        self.essential_tag_dict_all = parse_essential_dimension(self.essential_tag_data) if self.use_essential_tag_dict else None
         self.essential_tag_dict = None
 
         # 重要維度法
         self.use_important_tag_dict = use_important_tag_dict
-        self.important_tag_data = pandas.read_csv('important_tag_data.csv', encoding='utf8')
-        self.important_tag_dict_all = ped(self.important_tag_data) if self.use_important_tag_dict else None
+        self.important_tag_data = pandas.read_csv("important_tag_data.csv", encoding="utf8")
+        self.important_tag_dict_all = parse_essential_dimension(self.important_tag_data) if self.use_important_tag_dict else None
         self.important_tag_dict = None
         self.statistic_info = []
         self.SIZE = 100
         self.wordID, self.word_vectors = get_word_vector(self.SIZE)
         self.column_word_vector_dict = {}
-        # self.category_dict = {162116: '蕾絲', 1623: '半身裙', 121412004: '背心吊帶', 162104: '村杉',
-        #                       50000671: 'T恤', 162103: '毛衣', 50008901: '風衣', 50011277: '短外套'}
         self.model_dict = dict(
             LR=dict(model=LogisticRegression()),
             GBDT=dict(model=GradientBoostingClassifier()),
@@ -85,7 +87,7 @@ class CalculateCompetitiveItems(object):
             NB=dict(model=GaussianNB()),
             Ada=dict(model=AdaBoostClassifier()),
             SVM=dict(model=SVC()),
-            XGB=dict(model=xgb.sklearn.XGBClassifier()),
+            # XGB=dict(model=xgboost.XGBClassifier()),
         )
         self.RATIO = 1.0
         self.is_random = True
@@ -107,6 +109,7 @@ class CalculateCompetitiveItems(object):
 
     # endregion
 
+    @time_elapse
     def build_train_raw_feature(self):
         """
         崴
@@ -117,12 +120,14 @@ class CalculateCompetitiveItems(object):
         self.new_training_data = get_new_training_data(cid=self.category_id)
 
         self.training_data = pandas.concat([self.training_data, self.new_training_data], ignore_index=True)
-        self.training_data.columns = ['attr1', 'attr2', 'score', 'ItemID', 'ItemID2']
-        self.new_training_data.columns = ['attr1', 'attr2', 'score', 'ItemID', 'ItemID2']
+        self.training_data.columns = ["attr1", "attr2", "score", "ItemID", "ItemID2"]
+        self.new_training_data.columns = ["attr1", "attr2", "score", "ItemID", "ItemID2"]
 
         self.training_data = self.training_data.sort_values(
-            [self.training_data.ItemID, self.training_data.ItemID2]
+            # [self.training_data.ItemID, self.training_data.ItemID2]
+            ["ItemID", "ItemID2"], ascending=[True, True]
         )
+
         self.training_data = self.training_data.loc[self.training_data[["ItemID", "ItemID2"]].drop_duplicates().index]
         # 未打標籤 labeling = False
         attr_train_full = construct_train_raw_feature(
@@ -132,6 +137,7 @@ class CalculateCompetitiveItems(object):
         )
         return None
 
+    @time_elapse
     def get_result(self):
         """
         获取人工标注结果
@@ -141,6 +147,7 @@ class CalculateCompetitiveItems(object):
         return
 
     # region 特征(feature)构造
+    @time_elapse
     def build_train_feature(self):
         """
         构建所有训练数据(人工标注数据)的特征
@@ -151,7 +158,7 @@ class CalculateCompetitiveItems(object):
         self.new_training_data = get_new_training_data(cid=self.category_id)
 
         self.training_data = pandas.concat([self.training_data, self.new_training_data], ignore_index=True)
-        self.training_data.columns = ['attr1', 'attr2', 'score', 'ItemID', 'ItemID2']
+        self.training_data.columns = ["attr1", "attr2", "score", "ItemID", "ItemID2"]
 
         self.training_data = self.training_data.sort_values(
             [self.training_data.columns[3], self.training_data.columns[4]]
@@ -170,9 +177,10 @@ class CalculateCompetitiveItems(object):
             axis=1
         )
 
-        col = ['ID_customer', 'ID_competitor'] + [i for i in self.tag_dict[self.category_id].keys()] + ['Label']
+        col = ["ID_customer", "ID_competitor"] + [i for i in self.tag_dict[self.category_id].keys()] + ["Label"]
         return
 
+    @time_elapse
     def build_train_negative_feature(self):
         """
         构建没有标注过的负例数据, 默认所有未标注数据都为负例数据
@@ -222,9 +230,10 @@ class CalculateCompetitiveItems(object):
 
         train_negative = pandas.concat([pandas.DataFrame(self.item_pairs), pandas.DataFrame(train_negative)], axis=1)
 
-        col = ['ID_customer', 'ID_competitor'] + [i for i in self.tag_dict[self.category_id].keys()]
+        col = ["ID_customer", "ID_competitor"] + [i for i in self.tag_dict[self.category_id].keys()]
         return
 
+    @time_elapse
     def build_prediction_feature(self):
         """
         随机抽取用于预测的数据(非人工标注)
@@ -233,7 +242,7 @@ class CalculateCompetitiveItems(object):
         :return:
         """
         self.source_table = "itemmonthlysales_201607"
-        self.date_range = '20160701'
+        self.date_range = "20160701"
         self.customer_shop_items = get_customer_shop_items(
             db=self.industry,
             table=self.source_table,
@@ -282,7 +291,7 @@ class CalculateCompetitiveItems(object):
 
         attr_predict = pandas.concat([pandas.DataFrame(self.item_pairs), pandas.DataFrame(attr_predict)], axis=1)
 
-        col = ['ID_customer', 'ID_competitor'] + [i for i in self.tag_dict[self.category_id].keys()]
+        col = ["ID_customer", "ID_competitor"] + [i for i in self.tag_dict[self.category_id].keys()]
 
         # Extract item pairs excluded by Essential Tag method
         es_df = pandas.DataFrame(self.es_item_pairs)
@@ -291,12 +300,13 @@ class CalculateCompetitiveItems(object):
     # endregion
 
     # region 計算word vector距離
+    @time_elapse
     def get_train_distance(self):
         """
         生成正例基於word vector的距離特徵
         一次性的程序
         """
-        create_dummy_attr('attr_train_full_', self.category_id)
+        create_dummy_attr("attr_train_full_", self.category_id)
 
         attr, dummy, train = read_csv_data(
             is_training_set=True,
@@ -313,20 +323,21 @@ class CalculateCompetitiveItems(object):
             is_training_set=True
         )
 
-        train_distance.to_csv('train_distance_' + str(self.category_id) + '.csv', encoding='utf8')
+        train_distance.to_csv("train_distance_" + str(self.category_id) + ".csv", encoding="utf8")
 
         threshold = 0.5
         train_positive = separate_positive_negative(train, threshold)
         return
 
+    @time_elapse
     def get_prediction_distance(self):
         """
         生成預測數據的基於word vector距離特徵
         一次性的程序
         """
-        create_dummy_attr('attr_prediction_full_', self.category_id)
+        create_dummy_attr("attr_prediction_full_", self.category_id)
 
-        prediction_set = pandas.read_csv('prediction_' + str(self.category_id) + '.csv', encoding='utf8')
+        prediction_set = pandas.read_csv("prediction_" + str(self.category_id) + ".csv", encoding="utf8")
         attr, dummy, train_set = read_csv_data(is_training_set=True, category=self.category_id)
 
         prediction_set["is_train"] = 0
@@ -337,9 +348,9 @@ class CalculateCompetitiveItems(object):
         prediction_set = prediction_set[prediction_set.is_train == 0]
 
         # construct prediction features
-        attr_name = 'attr_prediction_full_'
-        attr = pandas.read_csv('{0}{1}.csv'.format(attr_name, self.category_id), encoding='utf-8')  # 原本是 utf-8-sig
-        dummy = pandas.read_csv('{0}{1}_dummy.csv'.format(attr_name, self.category_id), encoding='utf-8')  # 原本是 utf-8-sig
+        attr_name = "attr_prediction_full_"
+        attr = pandas.read_csv("{0}{1}.csv".format(attr_name, self.category_id), encoding="utf-8")  # 原本是 utf-8-sig
+        dummy = pandas.read_csv("{0}{1}_dummy.csv".format(attr_name, self.category_id), encoding="utf-8")  # 原本是 utf-8-sig
 
         # 限制預測集大小以控制訓練時間
         max_size = 400000
@@ -362,6 +373,7 @@ class CalculateCompetitiveItems(object):
     # end region
 
     # region 模型训练和预测
+    @time_elapse
     def easyensemble_prediction(self):
         """
         隨機負採樣，並集成八個模型預測概率
@@ -371,21 +383,19 @@ class CalculateCompetitiveItems(object):
 
         # Construct training distance metrics
         attr, dummy, train = read_csv_data(is_training_set=True, category=self.category_id)
-        train_distance = pandas.read_csv('train_distance_{0}.csv'.format(self.category_id), encoding='utf8')
+        train_distance = pandas.read_csv("train_distance_{0}.csv".format(self.category_id), encoding="utf8")
 
         threshold = 0.5
         train_distance_positive = separate_positive_negative(train_distance, threshold)
         train_positive = separate_positive_negative(train, threshold)
-        info('Positive training sample size: {0}\n'.format(len(train_positive)))
-        train_positive['Label'] = 1.0
-        train_distance_positive['Label'] = 1.0
+        train_positive["Label"] = 1.0
+        train_distance_positive["Label"] = 1.0
 
         # construct prediction features
-        prediction_set = pandas.read_csv('prediction_{0}.csv'.format(self.category_id), encoding='utf8')
+        prediction_set = pandas.read_csv("prediction_{0}.csv".format(self.category_id), encoding="utf8")
         prediction_proba = pandas.DataFrame()
 
-        prediction_distance = pandas.read_csv('prediction_distance_{0}.csv'.format(self.category_id), encoding='utf8')
-        info('Length of prediction set: {0}'.format(len(prediction_distance)))
+        prediction_distance = pandas.read_csv("prediction_distance_{0}.csv".format(self.category_id), encoding="utf8")
         prediction_full_features = pandas.concat([prediction_set.iloc[:, 3:], prediction_distance.iloc[:, 2:]], axis=1)
         prediction_full_features.fillna(0, inplace=True)
 
@@ -430,7 +440,7 @@ class CalculateCompetitiveItems(object):
 
             # 記綠每個模型的預測
             for key in self.model_dict.keys():
-                model = self.model_dict[key]['model']
+                model = self.model_dict[key]["model"]
                 # Predict
                 model.fit(X, y)
                 try:
@@ -442,14 +452,14 @@ class CalculateCompetitiveItems(object):
                 prediction_proba = pandas.concat([prediction_proba, prob], axis=1)
 
                 # Print Feature Importance
-                if key == 'XGB' and iteration == 0:
+                if key == "XGB" and iteration == 0:
                     features_importance = pandas.Series(model.feature_importances_, index=X.columns.values)
 
             prediction_proba_dict[self.category_id] = prediction_proba
-
     # endregion
 
     # region 程序入口
+    @time_elapse
     def run(self):
         """
         1. 读数据库
@@ -460,19 +470,16 @@ class CalculateCompetitiveItems(object):
         6. 数据会进行分割，先按CategoryID，再按DaterRange进行双重循环
         :return:
         """
-
         for cid in (self.category_dict.keys()):
             self.category_id = cid
             # self.get_result()
             self.build_train_raw_feature()
             # self.build_train_feature()
             self.get_train_distance()
-
             # self.build_train_negative_feature()
-
-            # self.build_prediction_feature()
-            # self.get_prediction_distance()
-            # self.easyensemble_prediction()
+            self.build_prediction_feature()
+            self.get_prediction_distance()
+            self.easyensemble_prediction()
         return
     # endregion
 

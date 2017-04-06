@@ -22,6 +22,8 @@ src/mplib/IO/file/texts.py
 src/mplib/IO/file/binary/__init__.py
 src/mplib/IO/file/binary/pickle_helper.py
 src/mplib/IO/file/hdfs/__init__.py
+src/mplib/Math/__init__.py
+src/mplib/Math/elementary_function.py
 src/mplib/common/__init__.py
 src/mplib/common/base_class.py
 src/mplib/common/decorators.py
@@ -35,15 +37,12 @@ src/mplib/competition/api.py
 src/mplib/competition/db_api.py
 src/mplib/competition/factory.py
 src/mplib/competition/helper.py
-src/mplib/competition/sql_constant.py
 src/mplib/dnr/__init__.py
 src/mplib/dnr/api.py
 src/mplib/dnr/api_kun.py
 src/mplib/dnr/factory.py
 src/mplib/dnr/factory_kun.py
 src/mplib/dnr/helper.py
-src/mplib/dnr/t.py
-src/mplib/dnr/udf_tag.py
 src/mplib/dnr/udf/__init__.py
 src/mplib/dnr/udf/udf_denoise.py
 src/mplib/dnr/udf/udf_denoise_ebusiness.py

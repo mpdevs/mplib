@@ -1,24 +1,10 @@
 # coding: utf-8
 # __author__ = "John"
 from __future__ import unicode_literals
-from mplib.common.settings import MYSQL_SETTINGS
+from mplib.IO import MySQL, get_mysql_connect
 from datetime import datetime
-from mplib.IO import MySQL
 from math import ceil
 import pandas
-
-
-def connect_mysql(db):
-    connection = MySQL(env="mpportal")
-
-    return
-
-
-def generate_shop_filter(shop_id):
-    shop_id_filter = ""
-    if shop_id:
-        shop_id_filter = " shop_id = {0} AND ".format(shop_id)
-    return shop_id_filter
 
 
 def get_item_attributes(db="mp_women_clothing", limits=""):
@@ -26,21 +12,21 @@ def get_item_attributes(db="mp_women_clothing", limits=""):
     SELECT
         ItemID,
         TaggedItemAttr
-    FROM {0}
+    FROM {2}.{0}
     WHERE TaggedItemAttr IS NOT NULL
     AND TaggedItemAttr != ''
     AND TaggedItemAttr LIKE ',%' {1};
     """
-    return pandas.read_sql_query(sql.format("TaggedItemAttr", limits), get_mysql_connect(db))
+    return pandas.read_sql_query(sql.format("TaggedItemAttr", limits, db), get_mysql_connect(env="mpportal"))
 
 
 def get_result_data(cid, db="mp_women_clothing"):
     sql = """
     SELECT *
-    FROM tagged_competitive_items
+    FROM {1}.tagged_competitive_items
     WHERE CategoryId = {0};
     """
-    return pandas.read_sql_query(sql.format(cid), get_mysql_connect(db))
+    return pandas.read_sql_query(sql.format(cid, db), get_mysql_connect(env="mpportal"))
 
 
 def get_training_data(cid, db="mp_women_clothing"):
@@ -51,16 +37,16 @@ def get_training_data(cid, db="mp_women_clothing"):
         c.score,
         a1.ItemID,
         a2.ItemID
-    FROM tagged_competitive_items c
-    JOIN TaggedItemAttr a1
+    FROM {1}.tagged_competitive_items c
+    JOIN {1}.TaggedItemAttr a1
     ON a1.ItemID = c.SourceItemID
-    JOIN TaggedItemAttr a2
+    JOIN {1}.TaggedItemAttr a2
     ON a2.ItemID = c.TargetItemID
     WHERE c.CategoryID = {0}
     AND a1.TaggedItemAttr LIKE ',%'
     AND a2.TaggedItemAttr LIKE ',%';
     """
-    return pandas.read_sql_query(sql.format(cid), get_mysql_connect(db))
+    return pandas.read_sql_query(sql.format(cid, db), get_mysql_connect(env="mpportal"))
 
 
 def get_new_training_data(cid, db="mp_women_clothing"):
@@ -71,16 +57,16 @@ def get_new_training_data(cid, db="mp_women_clothing"):
         c.score,
         a1.ItemID,
         a2.ItemID
-    FROM tagged_competitive_items c
-    JOIN itemmonthlysales_201607 a1
+    FROM {1}.tagged_competitive_items c
+    JOIN {1}.itemmonthlysales_201607 a1
     ON a1.ItemID = c.SourceItemID
-    JOIN itemmonthlysales_201607 a2
+    JOIN {1}.itemmonthlysales_201607 a2
     ON a2.ItemID = c.TargetItemID
     WHERE c.CategoryID = {0}
     AND a1.TaggedItemAttr LIKE ',%'
     AND a2.TaggedItemAttr LIKE ',%';
     """
-    return pandas.read_sql_query(sql.format(cid), get_mysql_connect(db))
+    return pandas.read_sql_query(sql.format(cid, db), get_mysql_connect(env="mpportal"))
 
 
 def get_customer_shop_items(db, table, category_id, date_range, shop_id):
@@ -91,7 +77,7 @@ def get_customer_shop_items(db, table, category_id, date_range, shop_id):
         DiscountPrice,
         CategoryID,
         DateRange
-    FROM {0}
+    FROM {4}.{0}
     WHERE {1} CategoryID = {2}
     AND DateRange = '{3}'
     AND TaggedItemAttr LIKE ',%'
@@ -101,7 +87,8 @@ def get_customer_shop_items(db, table, category_id, date_range, shop_id):
     shop_filter = ""
     if shop_id:
         shop_filter = " ShopID = {0} AND ".format(shop_id)
-    return pandas.read_sql_query(sql.format(table, shop_filter, category_id, date_range), get_mysql_connect(db))
+    sql = sql.format(table, shop_filter, category_id, date_range, db)
+    return pandas.read_sql_query(sql, get_mysql_connect(env="mpportal"))
 
 
 def get_competitor_shop_items(db, table, category_id, date_range):
@@ -112,14 +99,22 @@ def get_competitor_shop_items(db, table, category_id, date_range):
         DiscountPrice,
         CategoryID,
         DateRange
-    FROM {0}
+    FROM {3}.{0}
     WHERE CategoryID = {1}
     AND DateRange = '{2}'
     AND TaggedItemAttr LIKE ',%'
     ORDER BY RAND()
     LIMIT 3000;
     """
-    return pandas.read_sql_query(sql.format(table, category_id, date_range), get_mysql_connect(db))
+    print sql.format(table, category_id, date_range, db)
+    return pandas.read_sql_query(sql.format(table, category_id, date_range, db), get_mysql_connect(env="mpportal"))
+
+
+def generate_shop_filter(shop_id):
+    shop_id_filter = ""
+    if shop_id:
+        shop_id_filter = " shop_id = {0} AND ".format(shop_id)
+    return shop_id_filter
 
 
 def delete_score(db, table, category_id, date_range, shop_id):
@@ -141,7 +136,8 @@ def set_scores(db, table, args):
     :return:
     """
     sql = """
-    INSERT INTO {0}.{1} (ShopID, SourceItemID, TargetItemID, Score ,DateRange, CategoryID, RelationType, Status)
+    INSERT INTO {0}.{1}
+        (ShopID, SourceItemID, TargetItemID, Score ,DateRange, CategoryID, RelationType, Status)
     VALUES (%s, %s, %s, %s, %s, %s, 1, 1);
     """
     db_connection = MySQL()
@@ -167,7 +163,7 @@ def get_max_date_range(db, table):
         MAX(DateRange) AS DateRange
     FROM {0}.{1};
     """
-    return pandas.read_sql_query(sql.format(db, table), get_mysql_connect()).values[0][0]
+    return pandas.read_sql_query(sql.format(db, table), get_mysql_connect(env="mpportal")).values[0][0]
 
 
 def get_essential_dimensions(db="mp_women_clothing", threshold=0.75, confidence=5):
@@ -183,11 +179,64 @@ def get_essential_dimensions(db="mp_women_clothing", threshold=0.75, confidence=
         CategoryID,
         AttrName,
         AttrValue
-    FROM essential_dimensions
+    FROM {2}.essential_dimensions
     WHERE MoreThanTwoNegPercent >= {0}
     AND ConfidenceLevel >= {1};
     """
-    return pandas.read_sql_query(sql.format(threshold, confidence), get_mysql_connect(db))
+    return pandas.read_sql_query(sql.format(threshold, confidence, db), get_mysql_connect(env="mpportal"))
+
+
+def get_max_date_range(db, table):
+    """
+    因为数据源和数据目的地都有年月控制的字段，所以需要对数据进行删选，同月份数据有可比性，不同月份则没有
+    :param db:
+    :param table:
+    :return:
+    """
+    sql = """
+    SELECT
+        MAX(DateRange) AS DateRange
+    FROM {0}.{1};"""
+    return pandas.read_sql_query(sql.format(db, table), get_mysql_connect(env="mpportal")).values[0][0]
+
+
+def get_attribute_meta(db=u"mp_women_clothing"):
+    sql = """
+    SELECT
+        a.CID,
+        a.Attrname,
+        a.DisplayName,
+        a.AttrValue,
+        a.Flag
+    FROM mp_portal.attr_value AS a
+    JOIN mp_portal.industry AS i
+    ON a.IndustryID = i.IndustryID
+    WHERE a.IsCalc='y'
+    AND i.DBName ='{0}';
+    """
+    return pandas.read_sql_query(sql.format(db), get_mysql_connect(env="mpportal"))
+
+
+def get_categories(db=u"mp_women_clothing", category_id_list=[121412004]):
+    sql = """
+    SELECT DISTINCT
+        c.CategoryID,
+        c.CategoryName,
+        c.CategoryDesc
+    FROM mp_portal.category AS c
+    JOIN mp_portal.industry AS i
+    ON c.IndustryID = i.IndustryID
+    WHERE i.DBName = '{0}' {1}
+    AND c.IsBottom = 'y';
+    """
+    if category_id_list:
+        category_filter = u"AND CategoryID IN ("
+        for category_id in category_id_list:
+            category_filter += u"{0},".format(category_id)
+        category_filter = category_filter[0:-1] + u")"
+    else:
+        category_filter = u""
+    return pandas.read_sql_query(sql.format(db, category_filter), get_mysql_connect(env="mpportal")).values
 
 
 if __name__ == "__main__":
@@ -219,3 +268,4 @@ if __name__ == "__main__":
     print "{0} start testing get_essential_dimensions".format(datetime.now())
     r = get_essential_dimensions(db=_industry)
     print "get_essential_dimensions row count={0}".format(r.values.shape[0])
+

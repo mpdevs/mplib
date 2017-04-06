@@ -28,26 +28,23 @@ if __name__ == "__main__":
     # 测试文本：[(字符串,Y/N),(字符串,Y/N),(字符串,Y/N)]，对同一个字典做一系列测试，输出匹配错误的case
     regexp_para = dict(
         center=dict(
-            value="消化",
+            value="哪|推荐|介绍|怎么",
             distance="",
             logic="包含",
         ),
         head=dict(
-            value="",
-            distance="",
-            logic="",
+            value="无不没都",
+            distance="5",
+            logic="不包含",
         ),
         tail=dict(
-            value="非常|好",
+            value="无|不|没|都|还",
             distance="5",
-            logic="包含",
+            logic="不包含",
         ),
     )
     test_case = [
-        (u"消化好", True),
-        (u"消化非常好", True),
-        (u"消化不好", False),
-        (u"消化很不好", False),
+        ("一般情况下都是主张母乳喂养的哦，如果母乳不够真要喝奶粉也(1,3,4,5)没有说哪个好不(2)好，只能说适不适合宝宝，我家是喝美素(6)的", False),
     ]
     unit_test(reg_abc(regexp_para), test_case)
     print "-" * 100

@@ -1,6 +1,8 @@
 # coding: utf-8
 # __author__: u"John"
 from __future__ import unicode_literals
+from scipy.spatial.distance import cosine, cityblock, euclidean, chebyshev, canberra, braycurtis
+from mplib.common import smart_decode
 from collections import OrderedDict
 import matplotlib.pyplot as plt
 import random
@@ -27,7 +29,7 @@ def tag_to_dict(df):
     for cid in cid_list:
         attr_name_value_dict = OrderedDict()
         for row in df[df.CID == cid].values.tolist():
-            attr_name_value_dict[row[1]] = row[2].split(",")
+            attr_name_value_dict[row[1]] = row[2].split(b",")
         tag_dict[cid] = attr_name_value_dict
     return tag_dict
 
@@ -155,8 +157,8 @@ def attributes_to_dict(attributes):
     :return: OrderedDict(unicode: list(unicode))
     """
     od = OrderedDict()
-    for attribute in attributes[1: -1].split(","):
-        dimension_value_pair = attribute.split(":")
+    for attribute in attributes[1: -1].split(b","):
+        dimension_value_pair = attribute.split(b":")
         if dimension_value_pair[0] in od.keys():
             od[dimension_value_pair[0]].append(dimension_value_pair[1])
         else:
@@ -233,15 +235,15 @@ def construct_train_raw_feature(raw_data, tag_dict, labeling=True):
                 pass
             else:
                 for key in attr.keys():
-                    # don't use the keys that are not in tag_dict
+                    # don"t use the keys that are not in tag_dict
                     #  in order to ensure that two df has the same columns
                     if key not in tag_dict and labeling is True:
                         continue
                     else:
-                        values = ''
+                        values = b""
                         for value in attr[key]:
                             values += value
-                            values += ","
+                            values += b","
                         temp[key] = [values]
 
                 if temp.shape[0] == 0:
@@ -272,10 +274,10 @@ def construct_prediction_raw_feature(raw_data, tag_dict, labeling=True):
             if key not in tag_dict and labeling is True:
                 continue
             else:
-                values = ''
+                values = b""
                 for value in attr[key]:
                     values += value
-                    values += ","
+                    values += b","
                 temp[key] = [values]
 
         if temp.shape[0] == 0:
@@ -693,6 +695,306 @@ def cold_start_tagging_data(category, k=10000):
             for row in txt.values:
                 text_file.write("{0}\n".format(str(long(row))))
     return
+
+
+def get_word_vector(SIZE=100):
+    """
+    讀取詞向量
+    :param SIZE: word vector 样本量
+    :return: wordID: list, 單字
+    :return: word_vectors: list, list of vectors that correspond to each word in wordID
+    """
+    # Get word vectors
+    # Word2Vec
+    with open("wordid") as f:
+        word_ids = [f.readline().replace(b"\r", b"").replace(b"\n", b"") for i in xrange(10000)]
+        # word_ids = f.read().replace(b"\r", b"").split(b"\n")[0:100000]
+        word_ids = pandas.Series(word_ids).str.split(b"\t")
+        word_ids = list(word_ids.str[0])
+        word_ids = smart_decode(word_ids)
+
+    with open("WordVectors.txt") as f:
+        word_vectors = [f.readline().replace(b"\r", b"").replace(b"\n", b"") for i in xrange(10000)]
+        # word_vectors = f.read().replace(b"\r", "").split(b"\n")[:100000]
+        word_vectors = [pandas.Series(vec.split(b"\t")).astype(float) for vec in word_vectors]
+
+    return word_ids, word_vectors
+
+
+def create_dummy_attr(file_name_prefix, category):
+    """
+    生成維度值的亞變量
+    :param file_name_prefix: str, eg: attr_train_full
+    :param category: int
+    :return: DataFrame
+    """
+    # need encoding so that we can compare it with unicode(材质成分)
+    attr = pandas.read_csv("{0}{1}.csv".format(file_name_prefix, category), encoding="utf-8-sig")
+    # 用attr.drop會出現error
+    attr = attr.ix[:, attr.columns != "材质成分"]
+    attr = attr.ix[:, attr.columns != "品牌"]
+
+    dummy = pandas.DataFrame()
+    for col in attr.columns[2:]:
+        if sum(attr[col].notnull()) / float(
+                len(attr[col])) >= 0.01:  # skip if over 99% of the content in the column are NAN
+            #  turn col into dummy variables and ignore NAN
+            dummy = pandas.concat([dummy, attr[col].str.get_dummies(sep=",")], axis=1)
+    dummy = pandas.concat([attr.iloc[:, 1], dummy], axis=1)
+
+    return dummy
+
+
+def generate_distance_df(attr, dummy, data_set, column_word_vector_dict, word_vectors, wordID, size, is_training_set=True):
+    """
+    生成distance metric
+
+    Params:
+        attr: attr_train/test_full/tagged, DataFrame
+        dummy: attr_train/test_full/tagged_dummy, DataFrame
+        data_set: train/test_categoryID, , DataFrame
+        column_word_vector_dict: 儲存所有features的 word vector, dict
+        is_training_set: if it is training data, append label, boolean
+    Return:
+
+    """
+    # 引入word vector
+    column_word_vector_dict = get_column_word_vector(dummy.columns[1:], word_vectors, wordID, column_word_vector_dict, size)
+    word_vec = pandas.DataFrame(dummy.ix[:, 1])  # initiate with itemID
+
+    col_name = 'all_avg'
+    word_vec[col_name] = dummy.apply(
+        all_average_word_vector, column_word_vector_dict=column_word_vector_dict, full_column_list=dummy.columns[2:],
+        size=size, axis=1).ix[:, -1]
+
+    word_vec = pandas.concat([word_vec, attr.apply(
+        column_average_word_vector, column_word_vector_dict=column_word_vector_dict, full_column_list=attr.columns[2:],
+        size=size, axis=1).ix[:, 2:]], axis=1)
+
+    # 去除 nan(超過99%) 太多的維度
+    for col in word_vec:
+        threshold = 0.01
+        if sum(word_vec[col].notnull()) / float(len(word_vec)) < threshold:
+            word_vec.drop(col, inplace=True, axis=1)
+
+    # 計算距離
+    distance = pandas.DataFrame()
+    for col in word_vec.columns[1:]:
+        distance = pandas.concat(
+            [distance, data_set.apply(calculate_distance, item_word_vector=word_vec, column=col, axis=1)], axis=1)
+
+    distance = pandas.concat([data_set.ix[:, 1:3], distance], axis=1)  # Insert ItemID pair
+
+    # 去除全為 nan 或 0 的維度
+    for col in distance.columns:
+        # if sum(distance[col].notnull()) == 0 or sum(distance[col]) < 0.1:
+        #     distance.drop(col, inplace=True, axis=1)
+
+        try:
+            if sum(distance[col].notnull()) == 0:
+                distance.drop(col, inplace=True, axis=1)
+        except:
+            print "Null:", col
+        try:
+            if sum(distance[col]) == 0:
+                distance.drop(col, inplace=True, axis=1)
+        except:
+            print "Zeros:", col
+
+    # Training set 需要有label
+    if is_training_set:
+        distance = pandas.concat([distance, data_set.ix[:, -1]], axis=1)  # Append Label
+    return distance
+
+
+def get_column_word_vector(columns, word_vectors, wordID, word_vector_dict, size):
+    """
+    遍例欄名(即維度值),取出相應word vector,若無則賦值0向量,可保證之後index時不出error
+    :param columns: list, 欄名
+    :param word_vectors: list
+    :param wordID: list
+    :param word_vector_dict: dict
+    :param size: int
+    :return:
+    """
+    new_word_vector_dict = word_vector_dict.copy()
+    for column in columns:
+        if column not in word_vector_dict.keys():
+            try:
+                new_word_vector_dict[column] = list(word_vectors[wordID.index(column)])
+            except:
+                new_word_vector_dict[column] = numpy.zeros(size)
+    return new_word_vector_dict
+
+
+def calculate_distance(row, item_word_vector, column):
+    """
+    計算一個指定維度的距離
+    :param row: row of the DataFrame, 即一件商品的特徵向量
+    :param item_word_vector:
+    :param column: 要計算距離的維度
+    :return:
+    """
+    # select the item & its word vector
+    item1 = item_word_vector[item_word_vector["ItemID"].values == row[1]][:1]
+    item2 = item_word_vector[item_word_vector["ItemID"].values == row[2]][:1]
+
+    df = pandas.Series()
+
+    try:
+        vector1 = item1[column].values[0]
+        vector2 = item2[column].values[0]
+
+        df[column + "_cosine"] = cosine(vector1, vector2)
+        df[column + "_cityblock"] = cityblock(vector1, vector2)
+        df[column + "_euclidean"] = euclidean(vector1, vector2)
+        df[column + "_chebyshev"] = chebyshev(vector1, vector2)
+        df[column + "_canberra"] = canberra(vector1, vector2)
+        df[column + "_braycurtis"] = braycurtis(vector1, vector2)
+    except:
+        df[column + "_cosine"] = numpy.nan
+        df[column + "_cityblock"] = numpy.nan
+        df[column + "_euclidean"] = numpy.nan
+        df[column + "_chebyshev"] = numpy.nan
+        df[column + "_canberra"] = numpy.nan
+        df[column + "_braycurtis"] = numpy.nan
+    return df
+
+
+def column_average_word_vector(row, column_word_vector_dict, full_column_list, size):
+    """
+    分別取每格内所有单字的word vector平均
+    :param row: row of the DataFrame (attr)
+    :param column_word_vector_dict: dict, key為維度值 value為對應之詞向量
+    :param full_column_list: list, 欄名(維度值)列表
+    :param size: int, 詞向量長度
+    :return: 包含新features的row
+    """
+
+    # Double Check whether we skipped the ItemID in column_list or not
+    if len(full_column_list) == len(row):
+        return "Use df.columns[1:] to skip ItemID"
+    # filter the cols that equal NaN, exclude ItemID & itemDesc
+    column_list = full_column_list[row[2:].notnull() == 1]
+
+    for col in full_column_list:
+        if col in column_list:
+            temp = numpy.zeros(size)
+            i = 0
+            for value in row[col].split(",")[:-1]:  # -1: 去除空格
+                try:
+                    temp += column_word_vector_dict[value]
+                    i += 1.0
+                except:
+                    pass
+            if i == 0:
+                i = 1
+            row[col] = temp / i
+    return row
+
+
+def all_average_word_vector(row, column_word_vector_dict, full_column_list, size):
+    """
+    取所有欄位中所有单字的word vector平均
+
+    :param row: row of the DataFrame (dummy)
+    :param column_word_vector_dict: dict, key為分詞 value為對應之詞向量
+    :param full_column_list: list, 欄名列表
+    :param size: int, 詞向量長度
+    :return: 新增一個欄位的row
+    """
+    # Double Check whether we skipped the ItemID in column_list or not
+    if len(full_column_list) == len(row):
+        return "Use df.columns[1:] to skip ItemID"
+
+    # filter the cols that has 0 value, exclude ItemID
+    full_column_list = full_column_list[row[2:] != 0]
+
+    vector = numpy.zeros(size)
+    # 將所有維度值的詞向量加起來
+    for col in full_column_list:
+        vector += column_word_vector_dict[col]
+
+    # 平均
+    vector /= len(full_column_list)
+    row["word_vec_average_all"] = vector
+    return row
+
+
+def export_csv(df, filename, header=True):
+    df.to_csv(filename, header=header, encoding="utf8")
+
+
+def read_csv_data(is_training_set, category):
+    """
+    :param is_training_set: boolean
+    :param category: int
+    :returns:
+        attr: 商品attributes
+        dummy: attr的dummy variable版
+        data:　商品對的Jaccard相似度
+    """
+    if is_training_set:
+        attr_name = "attr_train_"
+        data = pandas.read_csv("train_{0}.csv".format(category), encoding="utf8")
+    else:
+        attr_name = "attr_test_"
+        data = pandas.read_csv("test_{0}.csv".format(category), encoding="utf8")
+        data["Label"] = 0.0
+
+    attr_name += "full_"
+    attr = pandas.read_csv("{0}{1}.csv".format(attr_name, category), encoding="utf-8-sig")
+    dummy = pandas.read_csv("{0}{1}_dummy.csv".format(attr_name, category), encoding="utf-8-sig")
+    return attr, dummy, data
+
+
+def separate_positive_negative(train, threshold=0.5):
+    """
+    拆解成正負例
+    :param train: 訓練數據
+    :param threshold: 閾值
+    :return: 正負例
+    """
+    return train[train["Label"] > threshold]
+
+
+def down_sample_testset(train_positive, test, ratio, is_random=False):
+    """
+    下採樣隨機商品對
+    :param train_positive: 正例
+    :param test: 全量負例
+    :param ratio: 下採樣比例
+    :param is_random: 是否設置random state
+    :return: 下採樣之負例
+    """
+    if not is_random:
+        numpy.random.seed(2017)
+    random_index = numpy.random.randint(0, len(test), ratio * len(train_positive))
+    sampled_test = test.iloc[random_index, :]
+    sampled_test = sampled_test.reset_index(drop=True)
+
+    return sampled_test
+
+
+def generate_model_input(train_positive, sampled_test, train_distance_positive, test_distance):
+    """
+    生成最終模型使用的數據
+    :param train_positive: 正例
+    :param sampled_test: 下採樣之負例
+    :param train_distance_positive: 正例之距離特徵
+    :param test_distance: 負例之距離特徵
+    :return:
+        X: 正例+負例的特徵維度
+        y: label
+    """
+    data = train_positive.iloc[:, 1:-1].append(sampled_test.iloc[:, 1:-1], ignore_index=True)  # skip labels first
+    word_vec = train_distance_positive.append(test_distance, ignore_index=True).iloc[:, 2:]  # skip customer & competitor ID
+    data = pandas.concat([data, word_vec], axis=1).fillna(0)
+    X = data.drop(["Label", "ID_competitor", "ID_customer", "Unnamed: 0"], axis=1)  # skipped ID, label
+    y = data["Label"]
+
+    return X, y
+
 
 if __name__ == "__main__":
 
