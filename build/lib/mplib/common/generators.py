@@ -4,6 +4,8 @@
 This module contains global genderators
 """
 from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
 import string
 
 
@@ -60,9 +62,9 @@ def g_alphabet(index, lowercase=False):
 if __name__ == "__main__":
     from helpers import print_line
     print_line(center_word=g_fib.__name__)
-    print [i for i in g_fib(6)]
+    print([i for i in g_fib(6)])
     print_line(center_word=g_alphabet.__name__)
-    print [i for i in g_alphabet(100, True)]
-    print [i for i in g_alphabet(100, False)]
+    print([i for i in g_alphabet(100, True)])
+    print([i for i in g_alphabet(100, False)])
     print_line(center_word=g_excel_col_name.__name__)
-    print [i for i in g_excel_col_name(27)]
+    print([i for i in g_excel_col_name(27)])

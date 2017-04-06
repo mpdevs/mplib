@@ -1,13 +1,14 @@
 # coding: utf-8
 # __author__: u"John"
 from __future__ import unicode_literals
-from mplib.common import smart_decode, time_elapse, smart_encode
+from __future__ import print_function
+from __future__ import division
+from mplib.common import smart_decode
 # from sklearn.feature_extraction.text import TfidfVectorizer
 # from sklearn.naive_bayes import MultinomialNB
 import editdistance
 import traceback
 import pandas
-# import jieba
 import json
 import re
 
@@ -320,7 +321,7 @@ class DataDenoiser(object):
 
     def error_info(self):
         if not self.udf_support:
-            print "ERROR\tself.line = {0};self.content = {1}; error_info = {2}".format(self.line, self.content, traceback.format_exc().replace("\t", " ").replace("\n", " "))
+            print("ERROR\tself.line = {0};self.content = {1}; error_info = {2}".format(self.line, self.content, traceback.format_exc().replace("\t", " ").replace("\n", " ")))
 
     def run(self):
         """
@@ -332,7 +333,7 @@ class DataDenoiser(object):
         for self.row_index, self.line in enumerate(self.data):
             self.content = self.get_content(line=self.line, content_index=self.content_index)
             self.start_work_flow()
-            print "\t".join([self.line[0], self.line[-1]])
+            print("\t".join([self.line[0], self.line[-1]]))
         # print "data size: {0}, noise size: {1}".format(len(self.data), len(filter(lambda x: x[-1] == "True", self.data)))
 
 
@@ -342,4 +343,3 @@ if __name__ == "__main__":
     j = json.dumps(dict(noise_client_list=",".join(d.noise_client_list)))
     db = MySQL()
     db.execute("insert into das.process_parameters (name, platform, process_type, parameter_type, json_value, create_time, update_time) values ('微博客户端去水', 'weibo', 'common', 'client', '{0}', now(), now());".format(j))
-

@@ -4,6 +4,8 @@
 This module contains common used trees in mp
 """
 from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
 from unicode_tools import smart_decode
 from collections import defaultdict
 
@@ -95,5 +97,5 @@ def tag_to_tree(tags=list(), sep="."):
 if __name__ == "__main__":
     t = tag_to_tree(["品牌.奶粉.惠氏", "品牌.达能.奶粉", "属性.颜色.白色"])
     import json
-    print json.dumps(t, indent=4, separators=(",", ":"))
+    print(json.dumps(t, indent=4, separators=(",", ":")))
 

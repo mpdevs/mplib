@@ -1,6 +1,8 @@
 # coding: utf-8
 # __author__: u"John"
 from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
 from mplib.common.settings import MYSQL_SETTINGS, DAS_PRO_MYSQL_CONNECTION
 from mplib.common import smart_decode
 import MySQLdb
@@ -25,7 +27,7 @@ def db_cursor(env="das_pro"):
 class MPMySQL(object):
 
     def __init__(self, env="das_pro"):
-        self.env=env
+        self.env = env
 
     def query(self, sql, dict_cursor=True, fetchone=False, cast=True):
         conn = db_connect(env=self.env)
@@ -34,7 +36,7 @@ class MPMySQL(object):
         try:
             ret = [cursor.fetchone()] if fetchone else list(cursor.fetchall())
         except Exception as e:
-            print "error message:{0}".format(e)
+            print("error message:{0}".format(e))
             return False
         else:
             if cast:
@@ -52,7 +54,7 @@ class MPMySQL(object):
             cursor.execute(sql if isinstance(sql, str) else sql.encode("utf8"))
             conn.commit()
         except Exception as e:
-            print "error message:{0}".format(e)
+            print("error message:{0}".format(e))
             return False
         else:
             return True
@@ -67,7 +69,7 @@ class MPMySQL(object):
             cursor.executemany(sql, args)
             conn.commit()
         except Exception as e:
-            print "error message:{0}".format(e)
+            print("error message:{0}".format(e))
             return False
         else:
             return True
@@ -81,5 +83,5 @@ class MPMySQL(object):
 
 
 if __name__ == "__main__":
-    print MPMySQL().query("SELECT now() AS time;", fetchone=True)
-    print MPMySQL().query("SELECT now() AS time;")
+    print(MPMySQL().query("SELECT now() AS time;", fetchone=True))
+    print(MPMySQL().query("SELECT now() AS time;"))

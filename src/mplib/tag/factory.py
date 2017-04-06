@@ -2,7 +2,7 @@
 # __author__: u"John"
 from mplib.common.settings import MYSQL_SETTINGS
 from mplib.common import AttributeDict
-from mplib.IO import MPMySQL
+from mplib.IO import MySQL
 
 
 class Parser(object):
@@ -21,7 +21,7 @@ class Parser(object):
         return
 
     def get_content(self):
-        db = MPMySQL(**MYSQL_SETTINGS)
+        db = MySQL(**MYSQL_SETTINGS)
         self.raw_list = db.query(self.sql)
         return
 

@@ -1,6 +1,8 @@
-# -*- coding: UTF-8 -*-
+# coding: utf-8
 # __author__: "Zhoujianfeng"
 from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
 from mplib.common.unicode_tools import smart_decode
 
 
@@ -18,25 +20,25 @@ def reg_abc(regexp_para):
     cc = regexp_para["tail"]["logic"]
     # 参数检验_中心词
     if b == "":
-        print "中心词不能为空"
+        print("中心词不能为空")
         raise TypeError
     for line in list(b):
         if line in ["^", "["]:
-            print "元字符只能有|和()"
+            print("元字符只能有|和()")
             raise TypeError
     if bb not in ["包含", "不包含"]:
-        print "中心词逻辑只能有包含或者不包含"
+        print("中心词逻辑只能有包含或者不包含")
         raise TypeError
     if o != "":
-        print "中心词没有距离"
+        print("中心词没有距离")
         raise TypeError
     # 参数检验_前后缀
     for line in list(a+c):
         if line in ["^", "["]:
-            print "元字符只能有|和()"
+            print("元字符只能有|和()")
             raise TypeError
     if aa not in ["包含", "不包含", ""] or cc not in ["包含", "不包含", ""]:
-        print "前后缀逻辑只能有包含或者不包含或者空"
+        print("前后缀逻辑只能有包含或者不包含或者空")
         raise TypeError
     for line in [m, n]:
         if line != "":
@@ -44,20 +46,20 @@ def reg_abc(regexp_para):
                 if int(line) >= 0:
                     continue
                 else:
-                    print "前后缀距离不能为负"
+                    print("前后缀距离不能为负")
                     raise TypeError
             except Exception:
-                print "前后缀距离只能是数字"
+                print("前后缀距离只能是数字")
         else:
             continue
     # 参数检验_逻辑
     for line in [a, aa, m]:
         if line == "" and len(a+aa+m) != 0:
-            print "前缀参数不全"
+            print("前缀参数不全")
             raise TypeError
     for line in [c, cc, n]:
         if line == "" and len(c+cc+n) != 0:
-            print "后缀参数不全"
+            print("后缀参数不全")
             raise TypeError
     # 分状态
     # 参数处理
@@ -100,10 +102,8 @@ def reg_abc(regexp_para):
             elif aa == "不包含" and cc == "包含":
                 regexp_out = "([^%s]{%s,}|^[^%s]*)%s([^%s]{,%s})%s" % (a, m, a, b, c, n-1, c)
         else:
-            print "this is a bug!"
+            print("this is a bug!")
     # 不包含中心词，有前后缀
     pass
     # 返回正则表达式
     return regexp_out
-
-

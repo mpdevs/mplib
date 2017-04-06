@@ -1,6 +1,8 @@
 # coding: utf-8
 # __author__: u"John"
 from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
 from mplib.common.settings import REDIS_CONNECTION
 from redis import Redis
 
@@ -36,4 +38,4 @@ class MPRedis(Redis):
 if __name__ == "__main__":
     r = MPRedis()
     r.set("hello", "world")
-    print [r.get("hello")]
+    print([r.get("hello")])

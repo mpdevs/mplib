@@ -1,13 +1,15 @@
-# -*- coding: UTF-8 -*-
-# __author__: "Zhoujianfneg"
+# coding: utf-8
+# __author__: u"Zhoujianfeng"
 from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
 from reg_abc import reg_abc
 import re
 
 
 def unit_test(regexp_string, test_case):
     # 正则实现
-    print regexp_string
+    print(regexp_string)
     for line in test_case:
         sample_text, r = line
         # print sample_text
@@ -17,10 +19,10 @@ def unit_test(regexp_string, test_case):
             else:
                 rr = True
             if rr != r:
-                print sample_text, r
+                print(sample_text, r)
         except Exception as e:
             # print e
-            print "reg_abc怎么还有bug？"
+            print("reg_abc怎么还有bug？")
 
 
 if __name__ == "__main__":
@@ -47,7 +49,7 @@ if __name__ == "__main__":
         ("一般情况下都是主张母乳喂养的哦，如果母乳不够真要喝奶粉也(1,3,4,5)没有说哪个好不(2)好，只能说适不适合宝宝，我家是喝美素(6)的", False),
     ]
     unit_test(reg_abc(regexp_para), test_case)
-    print "-" * 100
+    print("-" * 100)
     unit_test("(消化)([^(不)]){,1}(非常|好)", test_case)
     # a = "(消化)([^(不)]{5,}|[^(不)]*$)([^(非常|好)]{,4})(非常|好)"
     # b = "(消化)([^(非常|好)]{,4})(非常|好)"

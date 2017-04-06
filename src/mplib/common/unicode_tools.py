@@ -1,6 +1,8 @@
 # coding: utf-8
 # __author__: u"John"
 from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
 import numbers
 import chardet
 
@@ -139,7 +141,7 @@ if __name__ == "__main__":
         ("tuple[0]", b"元组", "奇怪的编码".encode("gb2312"))
     ]
     for test_obj in test_objs:
-        print smart_decode(test_obj, cast=True), type(smart_decode(test_obj, cast=True))
+        print(smart_decode(test_obj, cast=True), type(smart_decode(test_obj, cast=True)))
     for test_obj in test_objs:
-        print smart_encode(test_obj, cast=True), type(smart_encode(test_obj, cast=True))
-    print smart_decode(test_objs, cast=True)
+        print(smart_encode(test_obj, cast=True), type(smart_encode(test_obj, cast=True)))
+    print(smart_decode(test_objs, cast=True))

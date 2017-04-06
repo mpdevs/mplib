@@ -1,6 +1,8 @@
 # coding: utf-8
 # __author__: u"John"
 from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
 from mplib.dnr.factory import DataDenoiser
 from mplib.common import smart_decode
 import traceback
@@ -21,4 +23,4 @@ try:
     dd.udf_support = True
     dd.run()
 except Exception as e:
-    print "\t".join(["ERROR", traceback.format_exc()])
+    print("\t".join(["ERROR", traceback.format_exc()]))

@@ -1,5 +1,9 @@
 # coding: utf-8
 # __author__: u"John"
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
+
 # region class import
 from base_class import AttributeDict
 # endregion

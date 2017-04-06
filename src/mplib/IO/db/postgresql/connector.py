@@ -1,6 +1,8 @@
 # coding: utf-8
 # __author__: "John"
 from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
 from mplib.common.settings import PG_CONNECTION
 from mplib.common import smart_decode
 import psycopg2.extras
@@ -115,5 +117,5 @@ class MPPG(DatabaseSingleton):
 
 
 if __name__ == "__main__":
-    print MPPG().query("SELECT '你好' AS method, 'test' AS name UNION ALL SELECT '你好' AS method, 'test' AS name;", fetchone=True)
-
+    print(MPPG().query(
+        "SELECT '你好' AS method, 'test' AS name UNION ALL SELECT '你好' AS method, 'test' AS name;", fetchone=True))

@@ -1,6 +1,8 @@
 # coding: utf-8
 # __author__: u"John"
 from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
 from mplib.common.settings import IMPALA_CONNECTION
 from mplib.common import smart_decode, smart_encode
 from impala import dbapi
@@ -29,5 +31,5 @@ class Impala(object):
 
 
 if __name__ == "__main__":
-    print Impala().query("SHOW TABLES;")
-    print Impala().execute("SHOW TABLES;")
+    print(Impala().query("SHOW TABLES;"))
+    print(Impala().execute("SHOW TABLES;"))

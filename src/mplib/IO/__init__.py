@@ -1,5 +1,8 @@
 # coding: utf-8
 # __author__: u"John"
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
 from mplib.IO.db.hive.connector import Hive
 from mplib.IO.db.mysql.connector import MPMySQL as MySQL
 from mplib.IO.db.postgresql.connector import MPPG as PostgreSQL

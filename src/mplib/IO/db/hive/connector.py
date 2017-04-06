@@ -1,6 +1,8 @@
 # coding: utf-8
 # __author__ = "John"
 from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
 from mplib.common.settings import HIVE_CONNECTION
 from mplib.common import smart_decode
 import pyhs2
@@ -53,4 +55,5 @@ class Hive:
 
 
 if __name__ == "__main__":
-    print Hive().query("SHOW TABLES")
+    print(Hive().query("SHOW TABLES"))
+
