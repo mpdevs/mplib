@@ -61,7 +61,7 @@ class BaseReducer(object):
         :return:  list(tuple(index, unicode))
         """
         ret = []
-        for line in xrange(len(data_list)):
+        for line in range(len(data_list)):
             ret.append((line + 1, data_list[line]))
         return ret
 

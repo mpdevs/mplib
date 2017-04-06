@@ -33,6 +33,8 @@ src/mplib/common/settings.py
 src/mplib/common/trees.py
 src/mplib/common/unicode_tools.py
 src/mplib/competition/__init__.py
+src/mplib/competition/factory.py
+src/mplib/competition/helper.py
 src/mplib/competition/old/__init__.py
 src/mplib/competition/old/api.py
 src/mplib/competition/old/db_api.py

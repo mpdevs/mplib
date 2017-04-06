@@ -359,7 +359,7 @@ def sample_balance(train_x, train_y):
     :param train_y: numpy.array
     :return: numpy.array
     """
-    t = numpy.array(xrange(len(train_y)))
+    t = numpy.array(range(len(train_y)))
     t = random.sample(t[train_y <= 0.5], sum(train_y > 0.5)) + t[train_y > 0.5].tolist()
     t = random.sample(t, len(t))
     train_x = train_x[t]
@@ -707,14 +707,14 @@ def get_word_vector(SIZE=100):
     # Get word vectors
     # Word2Vec
     with open("wordid") as f:
-        word_ids = [f.readline().replace(b"\r", b"").replace(b"\n", b"") for i in xrange(10000)]
+        word_ids = [f.readline().replace(b"\r", b"").replace(b"\n", b"") for i in range(10000)]
         # word_ids = f.read().replace(b"\r", b"").split(b"\n")[0:100000]
         word_ids = pandas.Series(word_ids).str.split(b"\t")
         word_ids = list(word_ids.str[0])
         word_ids = smart_decode(word_ids)
 
     with open("WordVectors.txt") as f:
-        word_vectors = [f.readline().replace(b"\r", b"").replace(b"\n", b"") for i in xrange(10000)]
+        word_vectors = [f.readline().replace(b"\r", b"").replace(b"\n", b"") for i in range(10000)]
         # word_vectors = f.read().replace(b"\r", "").split(b"\n")[:100000]
         word_vectors = [pandas.Series(vec.split(b"\t")).astype(float) for vec in word_vectors]
 

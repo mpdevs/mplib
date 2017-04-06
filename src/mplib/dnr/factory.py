@@ -268,7 +268,7 @@ class DataDenoiser(object):
     def find_noise_edit_distance(self):
         text_max_length = len(self.content)
         max_length_text_index = self.row_index
-        for row_index in xrange(self.row_index, len(self.data)):
+        for row_index in range(self.row_index, len(self.data)):
             if self.data[row_index][-1] == "True" or self.line[-1] == "True": continue  # 跳过已经标注为噪声的数据
             if row_index == self.row_index: continue  # 跳过自己
             content = self.get_content(line=self.data[row_index], content_index=self.content_index)
