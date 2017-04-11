@@ -1,12 +1,17 @@
 # coding: utf-8
 # __author__: u"John"
 from __future__ import unicode_literals
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from pandas import DataFrame
 from os.path import join
-from factory import *
-from helper import *
+
+from .factory import *
+from .helper import *
+
 import traceback
 import datetime
 import jieba

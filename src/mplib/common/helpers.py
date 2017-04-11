@@ -4,10 +4,11 @@
 This module contains debug / print tools
 """
 from __future__ import unicode_literals
+from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
-from unicode_tools import to_unicode
-from settings import DEBUG
+from .unicode_tools import to_unicode
+from .settings import DEBUG
 
 
 def print_line(placeholder="-", repeat=50, center_word=""):
