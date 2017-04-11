@@ -13,7 +13,7 @@ sys.setdefaultencoding("utf8")
 
 try:
     data = [line for line in sys.stdin]
-    data = map(lambda x: smart_decode(x).replace("\n", "").replace("\r", "").split("\t"), data)
+    data = list(map(lambda x: smart_decode(x).replace("\n", "").replace("\r", "").split("\t"), data))
     dd = DataDenoiser(data=data, content_index=1, head=["id", "content"])
     dd.use_keywords = True
     dd.noise_keywords_list = []

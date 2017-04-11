@@ -166,6 +166,7 @@ class CalculateCompetitiveItems(object):
 
         self.training_data.iloc[:, 3:5].astype(long)
         self.training_data = self.training_data.loc[self.training_data[["ItemID", "ItemID2"]].drop_duplicates().index]
+
         self.train_x, self.train_y, ID1, ID2 = construct_train_feature(
             raw_data=self.training_data.values.tolist(),
             tag_dict=self.tag_dict[self.category_id],
