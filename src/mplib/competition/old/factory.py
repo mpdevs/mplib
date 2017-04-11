@@ -81,8 +81,8 @@ class CalculateCompetitiveItems(object):
         self.column_word_vector_dict = {}
         self.model_dict = dict(
             LR=dict(model=LogisticRegression()),
-            GBDT=dict(model=GradientBoostingClassifier()),
-            KNN=dict(model=KNeighborsClassifier()),
+            # GBDT=dict(model=GradientBoostingClassifier()),
+            # KNN=dict(model=KNeighborsClassifier()),
             RF=dict(model=RandomForestClassifier()),
             NB=dict(model=GaussianNB()),
             Ada=dict(model=AdaBoostClassifier()),
@@ -166,6 +166,7 @@ class CalculateCompetitiveItems(object):
 
         self.training_data.iloc[:, 3:5].astype(long)
         self.training_data = self.training_data.loc[self.training_data[["ItemID", "ItemID2"]].drop_duplicates().index]
+
         self.train_x, self.train_y, ID1, ID2 = construct_train_feature(
             raw_data=self.training_data.values.tolist(),
             tag_dict=self.tag_dict[self.category_id],
@@ -474,7 +475,7 @@ class CalculateCompetitiveItems(object):
             self.category_id = cid
             # self.get_result()
             self.build_train_raw_feature()
-            # self.build_train_feature()
+            self.build_train_feature()
             self.get_train_distance()
             # self.build_train_negative_feature()
             self.build_prediction_feature()

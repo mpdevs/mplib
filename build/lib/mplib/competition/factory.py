@@ -3,20 +3,24 @@
 from __future__ import unicode_literals
 from __future__ import print_function
 from __future__ import division
+from helper import *
 
 
 class Hound(object):
     def __init__(self):
         self.data = None
-        self.word_vectors = None
+        self.word_vectors = get_word_vector()
         self.train_x = None
         self.train_y = None
         self.test_x = None
         self.test_y = None
         self.model_dict = None
+        self.essential_dict = get_essential_dict()
+        self.important_dict = get_important_dict()
+        self.attribute_meta = get_attribute_meta()
 
-    def load_data(self):
-        pass
+    def load_data(self, data):
+        self.data = data
 
     def preprocess(self):
         pass
@@ -25,6 +29,7 @@ class Hound(object):
         pass
 
     def train(self):
+        self.data = get_train_data()
         pass
 
     def predict(self):
@@ -38,5 +43,4 @@ class Hound(object):
 
 
 if __name__ == "__main__":
-    h = Hound()
-    h.run()
+    Hound().run()

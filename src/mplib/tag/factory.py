@@ -32,7 +32,7 @@ class Parser(object):
             for pair in tmp_line:
                 try:
                     dimension, value = tuple(pair.split(self.value_separator))
-                    if dimension in self.current_tag.keys():
+                    if dimension in list(self.current_tag):
                         self.current_tag[dimension] += [value]
                     else:
                         self.current_tag[dimension] = [value]

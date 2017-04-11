@@ -766,6 +766,8 @@ def generate_distance_df(attr, dummy, data_set, column_word_vector_dict, word_ve
     word_vec[col_name] = dummy.apply(
         all_average_word_vector, column_word_vector_dict=column_word_vector_dict, full_column_list=dummy.columns[2:],
         size=size, axis=1).ix[:, -1]
+    # full_column_list 所有属性值
+
 
     word_vec = pandas.concat([word_vec, attr.apply(
         column_average_word_vector, column_word_vector_dict=column_word_vector_dict, full_column_list=attr.columns[2:],

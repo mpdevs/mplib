@@ -39,7 +39,7 @@ class Tagging:
             return 0
 
     def __get_columns(self, x):
-        for tag in self.dimensions.keys():
+        for tag in list(self.dimensions):
             if x[tag] > 0:
                 print '\t'.join([x['id'], tag])
 
@@ -48,7 +48,7 @@ class Tagging:
             df[tag] = df.content.apply(lambda x: self.__match(keywords, x))
 
         for name, rule in self.dimensions.iteritems():
-            if name in self.tags.keys():
+            if name in list(self.tags):
                 continue
 
             opt_lst = [_ for _ in self.__opsplit(rule)]
@@ -58,7 +58,7 @@ class Tagging:
 
                 #如果带*号则需要处理
                 if '*' in opt_lst[i]:
-                    columns = [_ for _ in self.tags.keys() if _.startswith(opt_lst[i].replace('*', ''))]
+                    columns = [_ for _ in list(self.tags) if _.startswith(opt_lst[i].replace('*', ''))]
                     opt_lst[i] = 'df.loc[:, ["{0}"]].any(axis=1).apply(lambda x: int(x))'.format('","'.join(columns))
                 else:
                     opt_lst[i] = 'df["{0}"]'.format(opt_lst[i])

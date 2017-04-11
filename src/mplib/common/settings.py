@@ -33,6 +33,16 @@ HIVE_CONNECTION = dict(
 )
 
 
+IDC_HIVE_CONNECTION = dict(
+    database="elengjing",
+    host="192.168.110.122",
+    user="hive",
+    password="hive1",
+    port=10000,
+    authMechanism="PLAIN"
+)
+
+
 REDIS_CONNECTION = dict(
     host="localhost",
     port=6379

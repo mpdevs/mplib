@@ -3,15 +3,23 @@
 from __future__ import unicode_literals
 from __future__ import print_function
 from __future__ import division
-from mplib.common.settings import HIVE_CONNECTION
+from mplib.common.settings import HIVE_CONNECTION, IDC_HIVE_CONNECTION
 from mplib.common import smart_decode
 import pyhs2
 
 
+def get_env(env="idc"):
+    env_dict = dict(
+        local=HIVE_CONNECTION,
+        idc=IDC_HIVE_CONNECTION,
+    )
+    return env_dict.get(env, IDC_HIVE_CONNECTION)
+
+
 class Hive:
-    def __init__(self, pool_name="poolHigh"):
+    def __init__(self, env="idc", pool_name="poolHigh"):
         # 设置超时时间30秒无响应即关闭连接
-        self.conn = pyhs2.connect(**HIVE_CONNECTION)
+        self.conn = pyhs2.connect(**get_env(env))
         self.pool_name = pool_name
 
     def get(self, sql):
@@ -26,7 +34,6 @@ class Hive:
         """
         with self.conn.cursor() as cursor:
             # 设置pool
-            cursor.execute("set mapred.fairscheduler.pool={0}".format(self.pool_name))
             cursor.execute(sql.encode("utf8"))
             columns = [smart_decode(row["columnName"]) for row in cursor.getSchema()]
             rows = [dict(zip(columns, [smart_decode(cell) for cell in row])) for row in cursor]
@@ -40,7 +47,6 @@ class Hive:
     def total(self, sql):
         with self.conn.cursor() as cursor:
             # 设置pool
-            cursor.execute("set mapred.fairscheduler.pool={0}".format(self.pool_name))
             cursor.execute(sql.encode("utf8"))
             columns = [smart_decode(row["columnName"]) for row in cursor.getSchema()]
             rows = [dict(zip(columns, [smart_decode(cell) for cell in row])) for row in cursor]
@@ -55,5 +61,5 @@ class Hive:
 
 
 if __name__ == "__main__":
-    print(Hive().query("SHOW TABLES"))
-
+    print(Hive(env="idc").query("SHOW TABLES"))
+    print(Hive(env="local").query("SHOW TABLES"))

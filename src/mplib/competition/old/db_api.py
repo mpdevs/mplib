@@ -37,10 +37,10 @@ def get_training_data(cid, db="mp_women_clothing"):
         c.score,
         a1.ItemID,
         a2.ItemID
-    FROM {1}.tagged_competitive_items c
-    JOIN {1}.TaggedItemAttr a1
+    FROM {1}.tagged_competitive_items AS c
+    JOIN {1}.TaggedItemAttr AS a1
     ON a1.ItemID = c.SourceItemID
-    JOIN {1}.TaggedItemAttr a2
+    JOIN {1}.TaggedItemAttr AS a2
     ON a2.ItemID = c.TargetItemID
     WHERE c.CategoryID = {0}
     AND a1.TaggedItemAttr LIKE ',%'
