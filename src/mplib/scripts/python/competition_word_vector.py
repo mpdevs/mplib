@@ -4,9 +4,9 @@ from __future__ import unicode_literals
 from __future__ import print_function
 from __future__ import division
 from mplib.IO import PostgreSQL
+from io import open
 import pandas
 import json
-import io
 
 
 def get_attr_pnv():
@@ -31,7 +31,7 @@ def get_attr_pnv():
 
 def get_word_vec():
     d = []
-    with io.open("vectors.txt", encoding="utf8") as f:
+    with open("vectors.txt", encoding="utf8") as f:
         for line in f:
             d.append(line.replace("\r", "").replace("\n", "").split(" "))
     print("get_word_vec.d:", len(d))
@@ -61,7 +61,7 @@ def to_json():
 
 
 def to_db():
-    with io.open("vectors.json", encoding="utf8") as f:
+    with open("vectors.json", encoding="utf8") as f:
         d = json.load(f, encoding="utf8")
 
     d = json.dumps(d)

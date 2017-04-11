@@ -5,8 +5,8 @@ from __future__ import print_function
 from __future__ import division
 from mplib.common import time_elapse
 from factory import DataDenoiser
+from io import open
 import pandas
-import io
 
 
 @time_elapse
@@ -43,7 +43,7 @@ def udf_generic_denoise():
 
 @time_elapse
 def read_text_file(file_path, limit=2000):
-    with io.open(file_path, encoding="utf8") as f:
+    with open(file_path, encoding="utf8") as f:
         head = f.readline().replace("\n", "").replace("\r", "").split("\t")
         data = [line.replace("\n", "").replace("\r", "").split("\t") for line in f]
         data = data[:limit] if limit else data
@@ -52,7 +52,7 @@ def read_text_file(file_path, limit=2000):
 
 @time_elapse
 def write_text_file(file_path, head, data):
-    with io.open(file_path, mode="w", encoding="utf8") as f:
+    with open(file_path, mode="w", encoding="utf8") as f:
         f.write("\t".join(head) + "\n")
         for line in data:
             f.write("\t".join(line) + "\n")
