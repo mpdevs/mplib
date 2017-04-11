@@ -37,7 +37,7 @@ class Parser(object):
                     else:
                         self.current_tag[dimension] = [value]
                 except TypeError:
-                    print tmp_line
+                    print(tmp_line)
             self.parsed_list.append(self.current_tag)
         return
 
