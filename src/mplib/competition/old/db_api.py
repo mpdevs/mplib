@@ -106,7 +106,6 @@ def get_competitor_shop_items(db, table, category_id, date_range):
     ORDER BY RAND()
     LIMIT 3000;
     """
-    print sql.format(table, category_id, date_range, db)
     return pandas.read_sql_query(sql.format(table, category_id, date_range, db), get_mysql_connect(env="mpportal"))
 
 
@@ -246,26 +245,4 @@ if __name__ == "__main__":
     _shop_id = 66098091
     _date_range = "2015-12-01"
     _category_id = 1623
-
-    print "{0} start testing get_training_data".format(datetime.now())
-    r = get_training_data(1623)
-    print "get_training_data row count={0}".format(r.values.shape[0])
-
-    print "{0} start testing get_customer_shop_items".format(datetime.now())
-    r = get_customer_shop_items(db=_industry, table=_source_table, shop_id=66098091, date_range=_date_range,
-                                category_id=_category_id)
-    print "get_customer_shop_items row count={0}".format(r.values.shape[0])
-
-    # print u"{0} start testing set_scores".format(datetime.now())
-    # batch_data = [(1, 1, 1, 0, datetime.now().strftime("%Y-%m-%d")),
-    #               (0, 0, 0, 1, datetime.now().strftime("%Y-%m-%d"))]
-    # set_scores(db="mp_women_clothing", table="itemmonthlyrelation_2016", args=batch_data)
-
-    print "{0} start testing get_max_date_range".format(datetime.now())
-    dr = get_max_date_range(db=_industry, table=_source_table)
-    print "date_range={0}".format(dr)
-
-    print "{0} start testing get_essential_dimensions".format(datetime.now())
-    r = get_essential_dimensions(db=_industry)
-    print "get_essential_dimensions row count={0}".format(r.values.shape[0])
 

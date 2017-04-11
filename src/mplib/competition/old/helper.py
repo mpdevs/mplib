@@ -554,7 +554,7 @@ def get_prediction_for_tagging(category, num_pos, num_neg):
                 continue
             else:
                 if str(long(txt.iloc[row, 0])) == str(long(txt.iloc[row, 1])):
-                    print str(long(txt.iloc[row, 0])), str(long(txt.iloc[row, 1]))
+                    print(str(long(txt.iloc[row, 0])), str(long(txt.iloc[row, 1])))
                 else:
                     text_file.write(
                         "{0}	{1}	{2}\n".format(str(long(txt.iloc[row, 0])), str(long(txt.iloc[row, 1])),
@@ -564,7 +564,7 @@ def get_prediction_for_tagging(category, num_pos, num_neg):
             # neg
             if (str(long(txt.iloc[-row, 0])) in cuo or str(long(txt.iloc[-row, 1])) in cuo) or count_neg > num_neg:
                 continue
-                print count_neg
+                print(count_neg)
             else:
                 text_file.write("{0}	{1}	{2}\n".format(str(long(txt.iloc[-row, 0])), str(long(txt.iloc[-row, 1])),
                                                              txt.iloc[-row, 2]))
@@ -794,12 +794,12 @@ def generate_distance_df(attr, dummy, data_set, column_word_vector_dict, word_ve
             if sum(distance[col].notnull()) == 0:
                 distance.drop(col, inplace=True, axis=1)
         except:
-            print "Null:", col
+            print("Null:", col)
         try:
             if sum(distance[col]) == 0:
                 distance.drop(col, inplace=True, axis=1)
         except:
-            print "Zeros:", col
+            print("Zeros:", col)
 
     # Training set 需要有label
     if is_training_set:

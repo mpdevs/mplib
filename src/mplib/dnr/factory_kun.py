@@ -1,5 +1,6 @@
 # coding: utf-8
 # __author__: u"John"
+from __future__ import print_function
 from __future__ import division
 from mplib.common import AttributeDict
 from mplib.common import to_unicode
@@ -207,12 +208,12 @@ class KeywordsReducer(BaseReducer):
             keyword_count = 0
             for count in self.count_list:
                 keyword_count += count
-            print u'關鍵詞標記微博數量為 ' + str(keyword_count) + u' 占' + str(keyword_count / total_length * 100) + '%'
-            print u"{0}以下是關鍵詞標記的水贴{0}".format(u"-" * 30)
+            print(u'關鍵詞標記微博數量為 ' + str(keyword_count) + u' 占' + str(keyword_count / total_length * 100) + '%')
+            print(u"{0}以下是關鍵詞標記的水贴{0}".format(u"-" * 30))
             for count_index in range(len(self.count_list)):
-                print u'关键词 "' + self.keywords_list[count_index] + u'" 匹配的微博数量为 ' \
+                print(u'关键词 "' + self.keywords_list[count_index] + u'" 匹配的微博数量为 ' \
                       + str(self.count_list[count_index]) + u'  占' + \
-                      str(self.count_list[count_index] / total_length * 100) + '%'
+                      str(self.count_list[count_index] / total_length * 100) + '%')
         # 在多数据文件或者多词库文件进行批量处理的时候需要对这些数据进行重置
         # self.raw_list = None
         # self.keywords_list = None
@@ -435,7 +436,7 @@ class AbnormalReducer(BaseReducer):
             self.current_result = len(number_counts) < self.abnormal and len(match)*2 <= len(char_list)
         if self.show_process:
             if self.current_result:
-                print u"含有的符号个数大于\n{0}".format(self.abnormal)
+                print(u"含有的符号个数大于\n{0}".format(self.abnormal))
             else:
                 # print u"没有匹配\n{0}".format(self.abnormal)
                 pass
@@ -497,7 +498,7 @@ class SeriesReducer(BaseReducer):
             self.current_result = series_length <= 2
         if self.show_process:
             if self.current_result:
-                print u"含有的序号个数小于\n{0}".format(2)
+                print(u"含有的序号个数小于\n{0}".format(2))
             else:
                 # print u"没有匹配\n{0}".format(self.abnormal)
                 pass
@@ -585,9 +586,9 @@ class SourcesReducer(BaseReducer):
         self.current_result = self.current_string not in self.keywords_list
         if self.show_process:
             if self.current_result:
-                print u"找到关键词\n{0}".format(self.current_keywords)
+                print(u"找到关键词\n{0}".format(self.current_keywords))
                 for r in self.current_result:
-                    print r
+                    print(r)
             else:
                 # print u"没有找到关键词\n{0}".format(keywords)
                 pass
@@ -654,12 +655,12 @@ if __name__ == u"__main__":
 
     kr.main()
 
-    print u"{0}统计信息{0}".format(u"-" * 30)
-    print u'共有数据 ' + str(len(kr.raw_list))
-    print u'水有 ' + str(len(kr.raw_list) - len(kr.cleaned_list)) + u'条'
-    print u'重复水有 ' + str(len(kr.trash_list) - len(kr.raw_list) + len(kr.cleaned_list)) + u'条'
-    print u'非水有 ' + str(len(kr.cleaned_list)) + u'条'
-    print u'去水率 ' + str(float(len(kr.raw_list) - len(kr.cleaned_list)) / len(kr.raw_list) * 100) + u'%'
+    print(u"{0}统计信息{0}".format(u"-" * 30))
+    print(u'共有数据 ' + str(len(kr.raw_list)))
+    print(u'水有 ' + str(len(kr.raw_list) - len(kr.cleaned_list)) + u'条')
+    print(u'重复水有 ' + str(len(kr.trash_list) - len(kr.raw_list) + len(kr.cleaned_list)) + u'条')
+    print(u'非水有 ' + str(len(kr.cleaned_list)) + u'条')
+    print(u'去水率 ' + str(float(len(kr.raw_list) - len(kr.cleaned_list)) / len(kr.raw_list) * 100) + u'%')
 
     # region 1000条人工标注数据data_sample的测试
     # clean_index = [3, 4, 26, 29, 33, 42, 55, 62, 70, 80, 83, 100, 109, 113, 119, 121, 171, 204, 261, 284, 290, 349,

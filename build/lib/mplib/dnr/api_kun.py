@@ -324,7 +324,6 @@ def find_trash_data(data_path, save_file_path=u"D:\WorkSpace\Data",
                                     max_symbol=max_symbol,)
         end_time = datetime.datetime.now()
         interval = end_time - start_time
-        print classifier, ur"cleaning done! Time cost: ", interval
 
 
 def rules_clean(raw_data, data_index_name=2, sources_index_name=3,
@@ -340,23 +339,18 @@ def rules_clean(raw_data, data_index_name=2, sources_index_name=3,
     :param min_char:
     :return:
     """
-    print "before dnr there's {0} rows in data".format(len(raw_data))
     raw_data = keywords_splitter(data=raw_data, data_path='', save_file_path='',
                                  data_index_name=data_index_name,
                                  has_header=False, keyword_path=keyword_path, )
-    print "after keywords_splitter there's {0} rows in data".format(len(raw_data))
     raw_data = sources_splitter(data=raw_data, data_path='', save_file_path='',
                                 sources_index_name=sources_index_name,
                                 has_header=False, sources_path=sources_path, )
-    print "after sources_splitter there's {0} rows in data".format(len(raw_data))
     raw_data = series_splitter(data=raw_data, data_path='', save_file_path='',
                                data_index_name=data_index_name,
                                has_header=False)
-    print "after series_splitter there's {0} rows in data".format(len(raw_data))
     raw_data = tags_splitter(data=raw_data, data_path='', save_file_path='',
                              data_index_name=data_index_name, min_char=min_char,
                              has_header=False)
-    print "after tags_splitter there's {0} rows in data".format(len(raw_data))
     return raw_data
 
 
@@ -402,8 +396,6 @@ def find_weibo_data(data_path=ur"D:\workspace\Data\WeiboData",
     for folder in folders:
         data = join(join(data_path, folder), "weibo1.txt")
         save_file = join(data_path, folder)
-        print "Processing: ", data
-
         start_time = datetime.datetime.now()
         try:
             # 表头信息处理
@@ -426,7 +418,6 @@ def find_weibo_data(data_path=ur"D:\workspace\Data\WeiboData",
                                      keyword_path=keyword_path, sources_path=sources_path, min_char=min_char)
             end_time = datetime.datetime.now()
             interval = end_time - start_time
-            print ur"Cleaning data done! Time cost: ", interval
             times[0] += interval
 
             # 利用贝叶斯进行降噪
@@ -450,16 +441,12 @@ def find_weibo_data(data_path=ur"D:\workspace\Data\WeiboData",
                                index=None, sep="\t", mode="w", quoting=csv.QUOTE_NONE)
             end_time = datetime.datetime.now()
             interval = end_time - start_time
-            print r"Cleaning data done! Time cost: ", interval
             times[1] += interval
 
         except:
-            print data, r" failed."
             pass
 
     outcome = [time.seconds / length for time in times]
-    print length
-    print outcome
 
 
 def other_platform_cleaning():
