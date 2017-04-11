@@ -2,6 +2,7 @@
 # __author__: u"John"
 from __future__ import print_function
 from __future__ import division
+from __future__ import unicode_literals
 from mplib.common import AttributeDict
 from mplib.common import to_unicode
 from glob import glob
@@ -296,19 +297,19 @@ class TagsReducer(BaseReducer):
         if self.current_string:
             tags_char_num = 0
             # 匹配#热门话题#
-            seg_list = re.findall(ur'#.*?#', self.current_string)
+            seg_list = re.findall(r'#.*?#', self.current_string)
             # 匹配【】
-            seg_list2 = re.findall(ur'【.*?】|★|◆', self.current_string)
+            seg_list2 = re.findall(r'【.*?】|★|◆', self.current_string)
             # 匹配[表情]
-            seg_list3 = re.findall(ur'\[.*?]', self.current_string)
+            seg_list3 = re.findall(r'\[.*?]', self.current_string)
             # 标签数=#热门话题# + 【】*阈值 ，出现【】即判为垃圾
             tags = len(seg_list) + len(seg_list2)*self.tags
             for seg in seg_list:
-                tags_char_num += len(re.findall(ur"[\u3007\u4E00-\u9FCB\uE815-\uE864]", seg))
+                tags_char_num += len(re.findall(r"[\u3007\u4E00-\u9FCB\uE815-\uE864]", seg))
             for seg3 in seg_list3:
-                tags_char_num += len(re.findall(ur"[\u3007\u4E00-\u9FCB\uE815-\uE864]", seg3))
+                tags_char_num += len(re.findall(r"[\u3007\u4E00-\u9FCB\uE815-\uE864]", seg3))
 
-            char_list = re.findall(ur"[\u3007\u4E00-\u9FCB\uE815-\uE864]", self.current_string)
+            char_list = re.findall(r"[\u3007\u4E00-\u9FCB\uE815-\uE864]", self.current_string)
             char_num = len(char_list) - tags_char_num
 
             return tags, char_num
@@ -365,7 +366,7 @@ class NumbersReducer(BaseReducer):
             :return:
             """
         try:
-            numbers = re.findall(ur"[\u4e00-\u9fa5]", self.current_string)
+            numbers = re.findall(r"[\u4e00-\u9fa5]", self.current_string)
             number_counts = len(numbers)
         except Exception as e:
             self.current_error = str(e)
@@ -419,8 +420,8 @@ class AbnormalReducer(BaseReducer):
             :return:
             """
         try:
-            char_list = re.findall(ur"[\u3007\u4E00-\u9FCB\uE815-\uE864]", self.current_string)
-            match = re.findall(ur"[^—@~:：?!！/ ,，.\[\]()（）\dA-Za-z\u3007\u4E00-\u9FCB\uE815-\uE864]",
+            char_list = re.findall(r"[\u3007\u4E00-\u9FCB\uE815-\uE864]", self.current_string)
+            match = re.findall(r"[^—@~:：?!！/ ,，.\[\]()（）\dA-Za-z\u3007\u4E00-\u9FCB\uE815-\uE864]",
                                self.current_string)
         except Exception as e:
             self.current_error = str(e)
@@ -576,12 +577,12 @@ class SourcesReducer(BaseReducer):
         python的正则表达式可以直接支持中文
         :return:
         """
-        pattern = re.compile(pattern=ur'>[^@]*<', flags=0)
+        pattern = re.compile(pattern=r'>[^@]*<', flags=0)
         self.current_string = re.findall(pattern, self.current_string)
         if self.current_string:
             self.current_string = self.current_string[0]
         else:
-            self.current_string = ur''
+            self.current_string = r''
         self.current_string = self.current_string.strip(u'><')
         self.current_result = self.current_string not in self.keywords_list
         if self.show_process:
@@ -633,7 +634,7 @@ if __name__ == u"__main__":
     # kr = SeriesReducer()
     kr.min_numbers = 5
     # kr.show_process = True
-    kr.current_data_abspath = ur"D:\WorkSpace\Data\data_sample.txt"
+    kr.current_data_abspath = r"D:\WorkSpace\Data\data_sample.txt"
     # kr.has_header = True
     # kr.data_column_name = ur"text"
     # kr.current_dict_abspath = ur"D:\workspace\Data\keywords.txt"

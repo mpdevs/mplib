@@ -11,6 +11,7 @@ import traceback
 import datetime
 import jieba
 import numpy
+import re
 import io
 import os
 
@@ -28,7 +29,7 @@ def string_preprocess(string):
     http_info = re.compile("[a-zA-z]+://[^\s]*")
     string_without_http = http_info.sub(r"链接", raw_string)
     at_info = re.compile(r"@[^ @，,。.]*")
-    string_without_http_and_at = at_info.sub(ur"@", string_without_http)
+    string_without_http_and_at = at_info.sub(r"@", string_without_http)
     number_eng_info = re.compile(r"[0-9|a-zA-Z]")
     clean_string = number_eng_info.sub("", string_without_http_and_at)
     return clean_string
@@ -273,10 +274,10 @@ def sources_splitter(data=list(), **parameter_diction):
 
 
 def find_trash_data(data_path, save_file_path=u"D:\WorkSpace\Data",
-                    solutions=[ur"keywords", ur"tags", ur"sources", ur"series"],
+                    solutions=[r"keywords", r"tags", r"sources", r"series"],
                     data_index_name="text", sources_index_name="source",
-                    has_header=True, keyword_path=ur"D:\WorkSpace\Data\keywords.txt",
-                    sources_path=ur"D:\WorkSpace\Data\trash_sources.txt",
+                    has_header=True, keyword_path=r"D:\WorkSpace\Data\keywords.txt",
+                    sources_path=r"D:\WorkSpace\Data\trash_sources.txt",
                     min_char=4, max_char=600, max_symbol=5, ):
     """
     筛选噪声数据
@@ -327,8 +328,8 @@ def find_trash_data(data_path, save_file_path=u"D:\WorkSpace\Data",
 
 
 def rules_clean(raw_data, data_index_name=2, sources_index_name=3,
-                keyword_path=ur"D:\WorkSpace\Data\keywords.txt",
-                sources_path=ur"D:\WorkSpace\Data\trash_sources.txt", min_char=4):
+                keyword_path=r"D:\WorkSpace\Data\keywords.txt",
+                sources_path=r"D:\WorkSpace\Data\trash_sources.txt", min_char=4):
     """
     一键去水
     :param raw_data:
@@ -354,12 +355,12 @@ def rules_clean(raw_data, data_index_name=2, sources_index_name=3,
     return raw_data
 
 
-def find_weibo_data(data_path=ur"D:\workspace\Data\WeiboData",
-                    train_data_path=ur"D:\workspace\weibo\data\8000条测试数据.xlsx",
-                    stop_words_path=ur"D:\workspace\weibo\data\stop_words.txt",
+def find_weibo_data(data_path=r"D:\workspace\Data\WeiboData",
+                    train_data_path=r"D:\workspace\weibo\data\8000条测试数据.xlsx",
+                    stop_words_path=r"D:\workspace\weibo\data\stop_words.txt",
                     data_index_name=u"text", sources_index_name=u"source", has_header=True,
-                    keyword_path=ur"D:\WorkSpace\Data\keywords.txt",
-                    sources_path=ur"D:\WorkSpace\Data\trash_sources.txt",
+                    keyword_path=r"D:\WorkSpace\Data\keywords.txt",
+                    sources_path=r"D:\WorkSpace\Data\trash_sources.txt",
                     min_char=4):
 
     folders = os.listdir(data_path)

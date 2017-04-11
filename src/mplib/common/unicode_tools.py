@@ -133,12 +133,12 @@ def to_unicode(obj):
 if __name__ == "__main__":
     test_objs = [
         3,
-        3L,
+        311241231245123,
         2.5,
         "it's a unicode",
-        ["a", b"你好", b"世界"],
+        ["a", "你好".encode("utf8"), "世界".encode("utf8")],
         {b"key1": b"value1", b"key2": "值2", "键3": b"value3", "key4": 5.3},
-        ("tuple[0]", b"元组", "奇怪的编码".encode("gb2312"))
+        ("tuple[0]", "元组".encode("utf8"), "奇怪的编码".encode("gb2312"))
     ]
     for test_obj in test_objs:
         print(smart_decode(test_obj, cast=True), type(smart_decode(test_obj, cast=True)))
