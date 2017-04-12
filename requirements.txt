@@ -1,3 +1,4 @@
+-i https://pypi.douban.com/simple/
 redis==2.10.5
 jieba==0.38
 scikit-learn==0.18.1
