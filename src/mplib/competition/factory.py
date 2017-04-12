@@ -11,8 +11,8 @@ class Hound(object):
     def __init__(self, category_id):
         self.data = None
         self.word_vectors = get_word_vector()
-        self.train_x = None
-        self.train_y = None
+        self.train_x = None  # word_vec, attr_name distance
+        self.train_y = None  # True or False
         self.test_x = None
         self.test_y = None
         self.model_dict = None
@@ -33,18 +33,16 @@ class Hound(object):
         tag_dict = self.tag_dict.get(self.category_id)
         return construct_train_feature(self.data.values.tolist(), tag_dict)
 
-    # def build_features(self):
-    #
-    #
-    #     distance = generate_distance_df(
-    #         attr,
-    #         dummy,
-    #         train,
-    #         self.column_word_vector_dict,
-    #         self.word_vectors, self.wordID,
-    #         size=self.SIZE,
-    #         is_training_set=True
-    #     )
+    def build_features(self):
+        self.distance = generate_distance_df(
+            self.attr,
+            self.dummy,
+            self.train,
+            self.column_word_vector_dict,
+            self.word_vectors, self.word_ids,
+            size=self.size,
+            is_training_set=True
+        )
 
     def train(self):
         self.train_x, self.train_y, id1, id2 = self.preprocess()
