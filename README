@@ -1,19 +1,54 @@
-# 该包用于公司内部
+# 声明：
+该包用于公司内部, 外部使用需要自行修改部分参数，比如mplib.common.settings内的数据库连接参数
+兼容python2和python3
+兼容CentOS,MacOS和Windows
+代码风格尽量满足pep8
+支持hive的udf，支持单机机器学习计算，支持多种数据库连接和文件操作
+需要Anaconda作为前置条件
 
-# 模块划分:
+最近实现的是将 sklearn model persistence to database
+有兴趣的可以在 mplib.pricing.factory 里看到过程
 
-# 0. 根 mplib
-# 1. 通用模块 mplib.common
-# 2. 读写模块 mplib.IO
-# 2.1 数据库操作 mplib.IO.db
-# 2.2 文本文件操作 mplib.IO.file
-# 3. 数据降噪模块 mplib.dnr
-# 4. 标签处理模块 mplib.tag
+# 功能介绍:
+详情可参考每个模块内的readme
+1. 通用模块 mplib.common
+2. 数据库和文本的读写模块 mplib.IO
+3. 数据降噪模块 mplib.dnr
+4. 标签处理模块 mplib.tag
+5. 价格预测模块 (回归模型) mplib.pricing
+6. 竞品查找模块 (分类模型的集成学习) mplib.competition
+7. 数值计算模块 mplib.Math
+8. 图表模块 mplib.plot
+9. 正则生成器模块 mplib.regexp_tools
+
+# 安装方法:
+git clone https://github.com/mpdevs/mplib.git
+cd mplib
+python setup.py bdist_egg
+python setup.py install
+pip install -r requirements.txt
+
+# 安装插曲：
+不同的操作系统在安装的时候会有不同的问题
+对于Windows系统而言，环境配置比较复杂的地方在于pyhs2所需要的sasl，仅影响连接Hive的情况
+对于centos 6.x系统而言，如果有原生python，需要对/usr/bin/yum作明确的python脚本引用，通常是2.6和更高版本的冲突，指定2.6即可。其余可以通过yum解决
+对于mac系统而言，环境配置主要通过homebrew解决，比如和数据里连接的一些模块
 
 
-# 适用范围:
+# 使用方法:
+python
+from mplib.common import time_elapse
+from mplib.IO import MySQL
 
-# 1. 数据分析师  以 读写模块.文本文件操作、数据降噪模块、标签处理模块 为主
-# 2. 后端工程师  以 通用模块、读写模块.数据库操作 为主
-# 3. 算法工程师  都会用到
-# 4. 爬虫工程师  以 通用模块、读写模块 为主
+@time_elapse
+def show_table():
+    print(MySQL().query("show tables"))
+
+show_table()
+
+# 注意事项:
+上述代码报错是很正常的，需要手动修改mplib.common.settings里的参数
+修改完之后需要重新打包、安装才能正常使用
+python setup.py bdist_egg # 打包
+python setup.py install # 安装
+
