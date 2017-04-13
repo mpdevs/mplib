@@ -82,9 +82,6 @@ def split_train_test(nrows, cid, path=None):
         error_bad_lines=False
     ).fillna(0)
     df = df[df[0] >= 100].values
-    print("filter y >= 100 data shape: ", df.shape)
-    df = drop_zero_columns(df)
-    print("drop zero data shape: ", df.shape)
     x_train, x_test, y_train, y_test = model_selection.train_test_split(df[:, 1:], df[:, 0], test_size=0.2, random_state=42)
     del df
 
