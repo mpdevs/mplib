@@ -22,10 +22,9 @@ try:
     a = SKAssess()
     a.x_predict, a.y_predict = split_x_y(data)
     a.predict()
-    data = zip(items, a.prediction.astype("unicode").tolist())
+    data = zip(items, a.prediction.astype(str).tolist())
     for line in data:
         print("\t".join([line[0], ",".join(line[1])]))
-
 
 except Exception as e:
     print("\t".join(["ERROR", traceback.format_exc()]))

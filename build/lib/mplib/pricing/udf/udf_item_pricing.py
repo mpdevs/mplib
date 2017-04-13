@@ -10,15 +10,21 @@ from mplib.common import smart_decode
 import traceback
 import sys
 
+
 reload(sys)
 sys.setdefaultencoding("utf8")
+
 
 try:
     data = [line for line in sys.stdin]
     data = list(map(lambda x: smart_decode(x).replace("\n", "").replace("\r", "").split("\t"), data))
-    items, arrays = split_id_feature(data)
+    items, data = split_id_feature(data)
     a = SKAssess()
-    a.x_train, a.y_train = split_x_y(arrays)
+    a.x_predict, a.y_predict = split_x_y(data)
     a.predict()
+    data = zip(items, a.prediction.astype(str).tolist())
+    for line in data:
+        print("\t".join([line[0], ",".join(line[1])]))
+
 except Exception as e:
     print("\t".join(["ERROR", traceback.format_exc()]))

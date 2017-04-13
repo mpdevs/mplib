@@ -10,12 +10,10 @@ from sklearn import model_selection
 from mplib.IO import PostgreSQL
 from datetime import datetime
 from os import listdir
-import matplotlib.pyplot as plt
 import collections
 import pickle
 import pandas
 import numpy
-import pylab
 
 
 def split_id_feature(data):
@@ -150,30 +148,6 @@ def get_print_var(locals_var):
 def print_all_info(locals_var):
     for k, v in get_print_var(locals_var).items():
         d("{0}: {1}".format(k, v))
-
-
-def plot_scatter(p, y, file_name=None):
-    fig, ax = plt.subplots()
-    ax.scatter(y, p)
-    ax.plot([y.min(), y.max()], [y.min(), y.max()], "k--", lw=3)
-    ax.set_xlabel("Measured")
-    ax.set_ylabel("Predicted")
-    if file_name:
-        pylab.savefig(join(join(dirname(__file__), "plots"), file_name))
-    else:
-        plt.show()
-
-
-def plot_line(p, y, file_name):
-    fig, ax = plt.subplots()
-    ax.scatter(y, p)
-    ax.plot([y.min(), y.max()], [y.min(), y.max()], "k--", lw=3)
-    ax.set_xlabel("Measured")
-    ax.set_ylabel("Predicted")
-    if file_name:
-        pylab.savefig(join(join(dirname(__file__), "plots"), file_name))
-    else:
-        plt.show()
 
 
 def save_model_to_pickle(model_obj, model_name, path=None):
