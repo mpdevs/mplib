@@ -21,6 +21,7 @@ try:
     items, data = split_id_feature(data)
     a = SKAssess()
     a.x_predict, a.y_predict = split_x_y(data)
+    a.load_model()
     a.predict()
     data = zip(items, a.prediction.astype(str).tolist())
     for line in data:
