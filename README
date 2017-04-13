@@ -20,6 +20,7 @@
 7. 数值计算模块 mplib.Math
 8. 图表模块 mplib.plot
 9. 正则生成器模块 mplib.regexp_tools
+10. 不可直接执行的脚本源码 mplib.scripts
 
 # 安装方法:
 git clone https://github.com/mpdevs/mplib.git
