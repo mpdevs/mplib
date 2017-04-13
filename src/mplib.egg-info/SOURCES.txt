@@ -56,7 +56,6 @@ src/mplib/pricing/__init__.py
 src/mplib/pricing/api.py
 src/mplib/pricing/factory.py
 src/mplib/pricing/helper.py
-src/mplib/pricing/sklearn_randomforest.py
 src/mplib/pricing/udf/__init__.py
 src/mplib/pricing/udf/udf_item_pricing.py
 src/mplib/regexp_tools/__init__.py
