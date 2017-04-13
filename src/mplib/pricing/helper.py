@@ -7,10 +7,12 @@ from __future__ import division
 from os.path import dirname, join, splitext
 from sklearn.externals import joblib
 from sklearn import model_selection
+from mplib.IO import PostgreSQL
 from datetime import datetime
 from os import listdir
 import matplotlib.pyplot as plt
 import collections
+import pickle
 import pandas
 import numpy
 import pylab
@@ -111,26 +113,24 @@ def d(string):
 
 
 def gen_print_var():
-    var_list = [
-        "M",
-        "N",
+    return [
+        "m",
+        "n",
         "y_definition",
         "train_size",
         "test_size",
         "framework_model",
-        "train_time",
-        "predict_time",
-        "MAE",
-        "MSE",
-        "r2",
-        "error_5p",
-        "error_10p",
-        "error_15p",
-        "error_20p",
+        "train_elapse",
+        "predict_elapse",
+        "metric_mae",
+        "metric_mse",
+        "metric_r2",
+        "metric_e5",
+        "metric_e10",
+        "metric_e15",
+        "metric_e20",
         "run_time",
-        "plot_file_name"
     ]
-    return var_list
 
 
 def get_print_var(locals_var):
@@ -176,14 +176,43 @@ def plot_line(p, y, file_name):
         plt.show()
 
 
-def save_model(model_obj, file_name, path=None):
+def save_model_to_pickle(model_obj, model_name, path=None):
     path = path if path else __file__
-    joblib.dump(model_obj, "{0}.pkl".format(join(dirname(path), join("models", file_name))))
+    joblib.dump(model_obj, "{0}.pkl".format(join(dirname(path), join("models", model_name))))
 
 
-def load_model(file_name, path=None):
+def save_model_to_pg(model_obj, model_name):
+    sql = """
+    INSERT INTO text_value
+    (name, value)
+    VALUES
+    ('{model_name}', %s)
+    """.format(model_name=model_name)
+    PostgreSQL().execute(sql, (pickle.dumps(model_obj),))
+
+
+def load_model_from_pickle(model_name, path=None):
     path = path if path else __file__
-    return joblib.load("{0}.pkl".format(join(dirname(path), join("models", file_name))))
+    return joblib.load("{0}.pkl".format(join(dirname(path), join("models", model_name))))
+
+
+def load_model_from_pg(model_name):
+    sql = """
+        SELECT value
+        FROM text_value
+        WHERE name = '{model_name}'
+        """.format(model_name=model_name)
+    return pickle.loads(PostgreSQL().query(sql)[0].get("value"))
+
+
+def exists_model_in_pg(model_name):
+    sql = """
+        SELECT 1
+        FROM text_value
+        WHERE name = '{model_name}'
+        """.format(model_name=model_name)
+    ret = PostgreSQL().query(sql)
+    return True if ret else False
 
 
 def logging_process(locals_var):

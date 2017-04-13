@@ -7,14 +7,9 @@ from __future__ import division
 from sklearn.ensemble import RandomForestRegressor
 from treeinterpreter import treeinterpreter as ti
 from sklearn.metrics import r2_score
-from collections import OrderedDict
 from datetime import datetime
-from six import iteritems
-
-from mplib.pricing.helper import vector_reshape_to_matrix, save_model, load_model
-from mplib.IO import PostgreSQL
-
-import pickle
+from mplib.pricing.helper import vector_reshape_to_matrix, save_model_to_pickle, load_model_from_pickle
+from mplib.pricing.helper import print_all_info, save_model_to_pg, load_model_from_pg, exists_model_in_pg
 import numpy
 import time
 
@@ -27,8 +22,6 @@ class SKAssess(object):
         self.x_predict = None
         self.y_train = None
         self.y_predict = None
-        self.info_list = self.gen_info_list()
-        self.info_detail = None
         self.model = None
         self.model_name = None
         self.prediction = None
@@ -52,36 +45,6 @@ class SKAssess(object):
         self.run_time = datetime.now().strftime("%Y%m%d%H%M%S")
         self.plot_file_name = None
         # endregion
-
-    @staticmethod
-    def gen_info_list():
-        return [
-            "m",
-            "n",
-            "y_definition",
-            "train_size",
-            "test_size",
-            "framework_model",
-            "train_elapse",
-            "predict_elapse",
-            "metric_mae",
-            "metric_mse",
-            "metric_r2",
-            "metric_e5",
-            "metric_e10",
-            "metric_e15",
-            "metric_e20",
-            "run_time",
-        ]
-
-    def process_info(self):
-        self.info_detail = OrderedDict()
-        for i in self.info_list:
-            self.info_detail[i] = None
-
-        for k, v in iteritems(self.__dict__):
-            if k in self.info_list:
-                self.info_detail[k] = v
 
     def update_info(self):
         self.train_size = len(self.x_train)
@@ -117,47 +80,25 @@ class SKAssess(object):
         if self.model_name is None: self.gen_model_name()
 
         if self.path is None:
-            if not self.exists_model():
-                bytes_obj = pickle.dumps(self.model)
-                sql = """
-                INSERT INTO text_value
-                (name, value)
-                VALUES
-                ('{model_name}', %s)
-                """.format(model_name=self.model_name)
-                PostgreSQL().execute(sql, (bytes_obj,))
+            if not exists_model_in_pg(self.model_name):
+                save_model_to_pg(self.model, self.model_name)
         else:
-            save_model(self.model, self.model_name, self.path)
+            save_model_to_pickle(self.model, self.model_name, self.path)
 
     def load_model(self):
         if self.model_name is None: self.gen_model_name()
 
         if self.path is None:
-            sql = """
-            SELECT value
-            FROM text_value
-            WHERE name = '{model_name}'
-            """.format(model_name=self.model_name)
-            self.model = pickle.loads(PostgreSQL().query(sql)[0].get("value"))
+            self.model = load_model_from_pg(self.model_name)
         else:
-            load_model(self.model_name, self.path)
+            load_model_from_pickle(self.model_name, self.path)
 
     def print_info(self):
-        self.process_info()
-        for k, v in iteritems(self.info_detail):
-            print("{0}: {1}".format(k, v))
+        print_all_info(self.__dict__)
 
     def gen_model_name(self):
         self.model_name = "sklearn_randomforest_{0}_{1}".format(self.category_id, self.interval)
 
-    def exists_model(self):
-        sql = """
-        SELECT 1
-        FROM text_value
-        WHERE name = '{model_name}'
-        """.format(model_name=self.model_name)
-        ret = PostgreSQL().query(sql)
-        return True if ret else False
 
 if __name__ == "__main__":
     from mplib.pricing.helper import get_items
