@@ -4,17 +4,15 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
-from mplib.pricing.helper import split_id_feature, get_items
+from mplib.pricing.helper import get_items, split_id_feature
 from mplib.pricing.factory import SKAssess
+from mplib.common import time_elapse
 
 
-def foo():
-    print("bar")
-
-
-def train_and_predict():
+@time_elapse
+def text_file_train_and_predict():
     a = SKAssess()
-    a.x_train, a.x_test, a.y_train, a.y_test = get_items(nrows=100, cid=50008899, path=__file__)
+    a.x_train, a.x_predict, a.y_train, a.y_predict = get_items(nrows=100, cid=50008899, path=__file__)
     a.train()
     a.path = __file__
     a.save_model()
@@ -23,18 +21,22 @@ def train_and_predict():
     a.print_info()
 
 
-def just_train():
+@time_elapse
+def text_file_train():
+    import pickle
     a = SKAssess()
-    a.x_train, a.x_test, a.y_train, a.y_test = get_items(nrows=100, cid=50008899, path=__file__)
+    a.x_train, a.x_predict, a.y_train, a.y_predict = get_items(nrows=100, cid=50008899, path=__file__)
     a.train()
     a.path = __file__
-    a.save_model()
-    a.print_info()
+    print(pickle.dumps(a.model))
+    # a.save_model()
+    # a.print_info()
 
 
-def just_predict():
+@time_elapse
+def text_file_predict():
     a = SKAssess()
-    a.x_train, a.x_test, a.y_train, a.y_test = get_items(nrows=100, cid=50008899, path=__file__)
+    a.x_train, a.x_predict, a.y_train, a.y_predict = get_items(nrows=100, cid=50008899, path=__file__)
     a.path = __file__
     a.load_model()
     a.predict()
@@ -51,7 +53,9 @@ if __name__ == "__main__":
     #     ["66", "1,0,1,0"],
     # ]
     # item, feature = split_id_feature(udf_data)
-    # print(item, feature)
-    # train_and_predict()
-    # just_train()
-    just_predict()
+    # data = (zip(item, feature.astype("unicode").tolist()))
+    # for line in data:
+    #     print("\t".join([line[0], ",".join(line[1])]))
+    # text_file_train_and_predict()
+    text_file_train()
+    # text_file_predict()

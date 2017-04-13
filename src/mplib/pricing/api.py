@@ -23,12 +23,14 @@ def text_file_train_and_predict():
 
 @time_elapse
 def text_file_train():
+    import pickle
     a = SKAssess()
     a.x_train, a.x_predict, a.y_train, a.y_predict = get_items(nrows=100, cid=50008899, path=__file__)
     a.train()
     a.path = __file__
-    a.save_model()
-    a.print_info()
+    print(pickle.dumps(a.model))
+    # a.save_model()
+    # a.print_info()
 
 
 @time_elapse
@@ -42,18 +44,18 @@ def text_file_predict():
 
 
 if __name__ == "__main__":
-    udf_data = [
-        ["2333", "1,0,0,1"],
-        ["233", "1,1,0,1"],
-        ["23", "1,0,1,1"],
-        ["6666", "1,1,1,1"],
-        ["666", "1,0,0,0"],
-        ["66", "1,0,1,0"],
-    ]
-    item, feature = split_id_feature(udf_data)
-    data = (zip(item, feature.astype("unicode").tolist()))
-    for line in data:
-        print("\t".join([line[0], ",".join(line[1])]))
+    # udf_data = [
+    #     ["2333", "1,0,0,1"],
+    #     ["233", "1,1,0,1"],
+    #     ["23", "1,0,1,1"],
+    #     ["6666", "1,1,1,1"],
+    #     ["666", "1,0,0,0"],
+    #     ["66", "1,0,1,0"],
+    # ]
+    # item, feature = split_id_feature(udf_data)
+    # data = (zip(item, feature.astype("unicode").tolist()))
+    # for line in data:
+    #     print("\t".join([line[0], ",".join(line[1])]))
     # text_file_train_and_predict()
-    # text_file_train()
+    text_file_train()
     # text_file_predict()

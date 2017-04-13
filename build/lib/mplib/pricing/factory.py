@@ -12,13 +12,17 @@ from datetime import datetime
 from six import iteritems
 
 from mplib.pricing.helper import vector_reshape_to_matrix, save_model, load_model
+from mplib.IO import PostgreSQL
 
+import pickle
 import numpy
 import time
 
 
 class SKAssess(object):
     def __init__(self):
+        self.category_id = 50008899
+        self.interval = "201612A"
         self.x_train = None
         self.x_predict = None
         self.y_train = None
@@ -26,8 +30,9 @@ class SKAssess(object):
         self.info_list = self.gen_info_list()
         self.info_detail = None
         self.model = None
+        self.model_name = None
         self.prediction = None
-        self.path = None
+        self.path = None  # extension for pickle file
         # region Expose to outside
         self.m = None
         self.n = None
@@ -69,14 +74,6 @@ class SKAssess(object):
             "run_time",
         ]
 
-    @staticmethod
-    def split_train_test(data):
-        return 1, 2, 3, 4
-
-    @staticmethod
-    def split_x_y(data):
-        return 1, 2
-
     def process_info(self):
         self.info_detail = OrderedDict()
         for i in self.info_list:
@@ -117,19 +114,57 @@ class SKAssess(object):
         self.metric_r2 = r2_score(self.y_predict, self.prediction, multioutput="variance_weighted")
 
     def save_model(self):
-        save_model(self.model, self.framework_model, self.path)
+        if self.model_name is None: self.gen_model_name()
+
+        if self.path is None:
+            if not self.exists_model():
+                bytes_obj = pickle.dumps(self.model)
+                sql = """
+                INSERT INTO text_value
+                (name, value)
+                VALUES
+                ('{model_name}', %s)
+                """.format(model_name=self.model_name)
+                PostgreSQL().execute(sql, (bytes_obj,))
+        else:
+            save_model(self.model, self.model_name, self.path)
 
     def load_model(self):
-        self.model = load_model(self.framework_model, self.path)
+        if self.model_name is None: self.gen_model_name()
+
+        if self.path is None:
+            sql = """
+            SELECT value
+            FROM text_value
+            WHERE name = '{model_name}'
+            """.format(model_name=self.model_name)
+            self.model = pickle.loads(PostgreSQL().query(sql)[0].get("value"))
+        else:
+            load_model(self.model_name, self.path)
 
     def print_info(self):
         self.process_info()
         for k, v in iteritems(self.info_detail):
             print("{0}: {1}".format(k, v))
 
-if __name__ == "__main__":
-    import json
-    a = SKAssess()
-    a.process_info()
+    def gen_model_name(self):
+        self.model_name = "sklearn_randomforest_{0}_{1}".format(self.category_id, self.interval)
 
-    print(json.dumps(a.info_detail))
+    def exists_model(self):
+        sql = """
+        SELECT 1
+        FROM text_value
+        WHERE name = '{model_name}'
+        """.format(model_name=self.model_name)
+        ret = PostgreSQL().query(sql)
+        return True if ret else False
+
+if __name__ == "__main__":
+    from mplib.pricing.helper import get_items
+    a = SKAssess()
+    a.x_train, a.x_predict, a.y_train, a.y_predict = get_items(nrows=100, cid=50008899, path=__file__)
+    a.train()
+    a.save_model()
+    a.load_model()
+    a.predict()
+    a.print_info()
