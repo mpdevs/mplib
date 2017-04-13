@@ -7,27 +7,25 @@ from __future__ import division
 from sklearn.ensemble import RandomForestRegressor
 from treeinterpreter import treeinterpreter as ti
 from sklearn.metrics import r2_score
-from collections import OrderedDict
 from datetime import datetime
-from six import iteritems
-
-from mplib.pricing.helper import vector_reshape_to_matrix, save_model, load_model
-
+from mplib.pricing.helper import vector_reshape_to_matrix, save_model_to_pickle, load_model_from_pickle
+from mplib.pricing.helper import print_all_info, save_model_to_pg, load_model_from_pg, exists_model_in_pg
 import numpy
 import time
 
 
 class SKAssess(object):
     def __init__(self):
+        self.category_id = 50008899
+        self.interval = "201612A"
         self.x_train = None
         self.x_predict = None
         self.y_train = None
         self.y_predict = None
-        self.info_list = self.gen_info_list()
-        self.info_detail = None
         self.model = None
+        self.model_name = None
         self.prediction = None
-        self.path = None
+        self.path = None  # extension for pickle file
         # region Expose to outside
         self.m = None
         self.n = None
@@ -48,49 +46,11 @@ class SKAssess(object):
         self.plot_file_name = None
         # endregion
 
-    @staticmethod
-    def gen_info_list():
-        return [
-            "m",
-            "n",
-            "y_definition",
-            "train_size",
-            "test_size",
-            "framework_model",
-            "train_elapse",
-            "predict_elapse",
-            "metric_mae",
-            "metric_mse",
-            "metric_r2",
-            "metric_e5",
-            "metric_e10",
-            "metric_e15",
-            "metric_e20",
-            "run_time",
-        ]
-
-    @staticmethod
-    def split_train_test(data):
-        return 1, 2, 3, 4
-
-    @staticmethod
-    def split_x_y(data):
-        return 1, 2
-
-    def process_info(self):
-        self.info_detail = OrderedDict()
-        for i in self.info_list:
-            self.info_detail[i] = None
-
-        for k, v in iteritems(self.__dict__):
-            if k in self.info_list:
-                self.info_detail[k] = v
-
     def update_info(self):
-        self.train_size = len(self.x_train)
-        self.test_size = len(self.x_predict)
+        self.train_size = len(self.x_train) if self.x_train is not None else 0
+        self.test_size = len(self.x_predict) if self.x_predict is not None else 0
         self.m = self.train_size + self.test_size
-        self.n = self.x_train.shape[1]
+        self.n = self.x_train.shape[1] if self.x_train is not None else 0
 
     def train(self):
         self.update_info()
@@ -117,19 +77,35 @@ class SKAssess(object):
         self.metric_r2 = r2_score(self.y_predict, self.prediction, multioutput="variance_weighted")
 
     def save_model(self):
-        save_model(self.model, self.framework_model, self.path)
+        if self.model_name is None: self.gen_model_name()
+
+        if self.path is None:
+            if not exists_model_in_pg(self.model_name):
+                save_model_to_pg(self.model, self.model_name)
+        else:
+            save_model_to_pickle(self.model, self.model_name, self.path)
 
     def load_model(self):
-        self.model = load_model(self.framework_model, self.path)
+        if self.model_name is None: self.gen_model_name()
+
+        if self.path is None:
+            self.model = load_model_from_pg(self.model_name)
+        else:
+            load_model_from_pickle(self.model_name, self.path)
 
     def print_info(self):
-        self.process_info()
-        for k, v in iteritems(self.info_detail):
-            print("{0}: {1}".format(k, v))
+        print_all_info(self.__dict__)
+
+    def gen_model_name(self):
+        self.model_name = "sklearn_randomforest_{0}_{1}".format(self.category_id, self.interval)
+
 
 if __name__ == "__main__":
-    import json
+    from mplib.pricing.helper import get_items
     a = SKAssess()
-    a.process_info()
-
-    print(json.dumps(a.info_detail))
+    a.x_train, a.x_predict, a.y_train, a.y_predict = get_items(nrows=100, cid=50008899, path=__file__)
+    a.train()
+    a.save_model()
+    a.load_model()
+    a.predict()
+    a.print_info()

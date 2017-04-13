@@ -15,17 +15,18 @@ from io import open
 import pickle
 
 
-def pickle_dump(file_name, dump_object):
+def pickle_dump(file_name, dump_object, ext="pickle"):
     """
     导出pickle文件时自动添加.pickle后缀
     :param file_name:
     :param dump_object:
+    :param ext:
     :return:
     """
-    if splitext(__file__)[-1][1:] == "pickle":
+    if splitext(__file__)[-1][1] == ext:
         pickle_name = file_name
     else:
-        pickle_name = file_name + ".pickle"
+        pickle_name = "{0}.{1}".format(file_name, ext)
 
     with open(pickle_name, "wb") as f:
         pickle.dump(dump_object, f)
@@ -33,16 +34,17 @@ def pickle_dump(file_name, dump_object):
     return
 
 
-def pickle_load(file_name):
+def pickle_load(file_name, ext="pickle"):
     """
     读文件的时候可以忽略 .pickle 的后缀
     :param file_name:
+    :param ext:
     :return:
     """
-    if splitext(__file__)[-1][1:] == "pickle":
+    if splitext(__file__)[-1][1] == "pickle":
         pickle_name = file_name
     else:
-        pickle_name = file_name + ".pickle"
+        pickle_name = "{0}.{1}".format(file_name, ext)
 
     with open(pickle_name, "rb") as f:
         load_object = pickle.load(f)

@@ -52,11 +52,12 @@ src/mplib/dnr/udf/udf_denoise_ebusiness.py
 src/mplib/dnr/udf/udf_denoise_inquiry.py
 src/mplib/dnr/udf/udf_denoise_motherbaby.py
 src/mplib/dnr/udf/udf_denoise_weibo.py
+src/mplib/plot/__init__.py
+src/mplib/plot/api.py
 src/mplib/pricing/__init__.py
 src/mplib/pricing/api.py
 src/mplib/pricing/factory.py
 src/mplib/pricing/helper.py
-src/mplib/pricing/sklearn_randomforest.py
 src/mplib/pricing/udf/__init__.py
 src/mplib/pricing/udf/udf_item_pricing.py
 src/mplib/regexp_tools/__init__.py
