@@ -50,7 +50,7 @@ class SKAssess(object):
         self.train_size = len(self.x_train) if self.x_train is not None else 0
         self.test_size = len(self.x_predict) if self.x_predict is not None else 0
         self.m = self.train_size + self.test_size
-        self.n = self.x_train.shape[1] if self.x_train is not None else 0
+        self.n = self.x_train.shape[1] if self.x_train is not None else self.x_predict.shape[1]
 
     def train(self):
         self.update_info()
