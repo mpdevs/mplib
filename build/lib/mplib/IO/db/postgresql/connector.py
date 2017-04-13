@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
-from mplib.common.settings import PG_CONNECTION
+from mplib.common.setting import PG_CONNECTION
 from mplib.common import smart_decode
 import psycopg2.extras
 import psycopg2.pool

@@ -4,13 +4,17 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
+
+from mplib.common.helper import get_print_var
+from mplib.common import smart_encode
+from mplib.IO import PostgreSQL
+
 from os.path import dirname, join, splitext
+from os import listdir
+
 from sklearn.externals import joblib
 from sklearn import model_selection
-from mplib.IO import PostgreSQL
-from datetime import datetime
-from os import listdir
-import collections
+
 import pickle
 import pandas
 import numpy
@@ -82,14 +86,15 @@ def split_train_test(nrows, cid, path=None):
         error_bad_lines=False
     ).fillna(0)
     df = df[df[0] >= 100].values
-    x_train, x_test, y_train, y_test = model_selection.train_test_split(df[:, 1:], df[:, 0], test_size=0.2, random_state=42)
+    x_train, x_test, y_train, y_test = model_selection.train_test_split(
+        df[:, 1:], df[:, 0], test_size=0.2, random_state=42)
     del df
 
     prefix = join(dirname(path), join("data", "{0}_pricing".format(cid)))
-    numpy.savetxt("{0}_x_train.csv".format(prefix), x_train, delimiter=",")
-    numpy.savetxt("{0}_x_test.csv".format(prefix), x_test, delimiter=",")
-    numpy.savetxt("{0}_y_train.csv".format(prefix), y_train, delimiter=",")
-    numpy.savetxt("{0}_y_test.csv".format(prefix), y_test, delimiter=",")
+    numpy.savetxt("{0}_x_train.csv".format(prefix), x_train, delimiter=b",")
+    numpy.savetxt("{0}_x_test.csv".format(prefix), x_test, delimiter=b",")
+    numpy.savetxt("{0}_y_train.csv".format(prefix), y_train, delimiter=b",")
+    numpy.savetxt("{0}_y_test.csv".format(prefix), y_test, delimiter=b",")
     return x_train, x_test, y_train, y_test
 
 
@@ -103,17 +108,13 @@ def vector_reshape_to_matrix(v):
     return v.reshape(len(v), 1)
 
 
-def d(string):
-    print("{0} {1}".format(datetime.now(), string))
-
-
 def gen_print_var():
     return [
         "m",
         "n",
         "y_definition",
         "train_size",
-        "test_size",
+        "predict_size",
         "framework_model",
         "train_elapse",
         "predict_elapse",
@@ -126,25 +127,6 @@ def gen_print_var():
         "metric_e20",
         "run_time",
     ]
-
-
-def get_print_var(locals_var):
-    var_list = gen_print_var()
-    var_dict = collections.OrderedDict()
-
-    for i in var_list:
-        var_dict[i] = None
-
-    for k, v in locals_var.items():
-        if k in var_dict.keys():
-            var_dict[k] = v
-
-    return var_dict
-
-
-def print_all_info(locals_var):
-    for k, v in get_print_var(locals_var).items():
-        d("{0}: {1}".format(k, v))
 
 
 def save_model_to_pickle(model_obj, model_name, path=None):
@@ -187,10 +169,10 @@ def exists_model_in_pg(model_name):
 
 
 def logging_process(locals_var):
-    var_dict = get_print_var(locals_var)
+    var_dict = get_print_var(locals_var, gen_print_var())
     info = ",".join([str(v) for k, v in var_dict.items()])
     with open(get_experiment_logs_path("experiment_logs.csv"), mode="a") as f:
-        f.write(info + "\n")
+        f.write(smart_encode(info + "\n"))
 
 
 def get_experiment_logs_path(file_name):
@@ -200,7 +182,7 @@ def get_experiment_logs_path(file_name):
 def gen_experiment_logs_head():
     info = ",".join(gen_print_var())
     with open(get_experiment_logs_path("experiment_head.csv"), mode="w") as f:
-        f.write(info + "\n")
+        f.write(smart_encode(info + "\n"))
 
 
 def gen_experiment_logs_table():

@@ -1,5 +1,5 @@
 # 声明：
-该包用于公司内部, 外部使用需要自行修改部分参数，比如mplib.common.settings内的数据库连接参数
+该包用于公司内部, 外部使用需要自行修改部分参数，比如mplib.common.setting内的数据库连接参数
 兼容python2和python3
 兼容CentOS,MacOS和Windows
 代码风格尽量满足pep8

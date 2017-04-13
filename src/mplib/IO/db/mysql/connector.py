@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
-from mplib.common.settings import MYSQL_SETTINGS, DAS_PRO_MYSQL_CONNECTION
+from mplib.common.setting import MYSQL_SETTINGS, DAS_PRO_MYSQL_CONNECTION
 from mplib.common import smart_decode
 import MySQLdb
 

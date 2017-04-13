@@ -5,37 +5,39 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 from scipy.spatial.distance import cosine, cityblock, euclidean, chebyshev, canberra, braycurtis
-from mplib.IO import PostgreSQL, Hive
-from mplib.common import time_elapse
 from collections import OrderedDict
 from six import iteritems
 import pandas
 import numpy
 import re
 
+try:
+    from mplib.IO import PostgreSQL
+except ImportError:
+    pass
+try:
+    from mplib.IO import Hive
+except ImportError:
+    pass
 
-@time_elapse
+
 def get_external_json():
     return PostgreSQL().query("SELECT value FROM json_value")
 
 
-@time_elapse
 def get_word_vector():
     ret = PostgreSQL().query("SELECT value FROM json_value WHERE name = 'word_vector'")[0].get("value")
     return {k: numpy.array(v) for k, v in ret.iteritems()}
 
 
-@time_elapse
 def get_essential_dict():
     return PostgreSQL().query("SELECT value FROM json_value WHERE name = 'essential_dict'")[0].get("value")
 
 
-@time_elapse
 def get_important_dict():
     return PostgreSQL().query("SELECT value FROM json_value WHERE name = 'important_dict'")[0].get("value")
 
 
-@time_elapse
 def get_attribute_meta():
     sql = """
     SELECT
@@ -49,7 +51,6 @@ def get_attribute_meta():
     return pandas.DataFrame(PostgreSQL().query(sql))
 
 
-@time_elapse
 def get_train_data(category_id):
     sql = """
     SELECT
@@ -68,22 +69,18 @@ def get_train_data(category_id):
     return pandas.DataFrame(Hive().query(sql))
 
 
-@time_elapse
 def get_predict_data(category_id):
     return
 
 
-@time_elapse
 def do_word_to_vec():
     return
 
 
-@time_elapse
 def get_distance():
     return
 
 
-@time_elapse
 def construct_train_feature(raw_data, tag_dict):
     x = []
     y = []
@@ -109,13 +106,11 @@ def construct_train_feature(raw_data, tag_dict):
     return numpy.array(x), numpy.array(y), numpy.array(id1), numpy.array(id2)
 
 
-@time_elapse
 def construct_feature(attr1, attr2, tag_dict):
     attr1, attr2 = attributes_to_dict(attr1), attributes_to_dict(attr2)
     return make_similarity_feature(attr1=attr1, attr2=attr2, tag_dict=tag_dict)
 
 
-@time_elapse
 def attributes_to_dict(attributes):
     od = OrderedDict()
     for attribute in attributes[1: -1].split(","):
@@ -127,7 +122,6 @@ def attributes_to_dict(attributes):
     return od
 
 
-@time_elapse
 def make_similarity_feature(attr1, attr2, tag_dict):
     feature = []
     for attr_name, attr_value_list in iteritems(tag_dict):
@@ -161,7 +155,6 @@ def make_similarity_feature(attr1, attr2, tag_dict):
     return feature
 
 
-@time_elapse
 def material_string_to_dict(material):
     if not material:
         return dict()
@@ -185,7 +178,6 @@ def material_string_to_dict(material):
     return material_dict
 
 
-@time_elapse
 def tag_to_dict(df):
     df = df[["category_id", "attr_name", "attr_value"]]
     category_ids = df.category_id.unique().tolist()
@@ -198,22 +190,18 @@ def tag_to_dict(df):
     return tag_dict
 
 
-@time_elapse
 def do_essential_trick():
     return
 
 
-@time_elapse
 def do_important_trick():
     return
 
 
-@time_elapse
 def serialize():
     return
 
 
-@time_elapse
 def generate_distance_df(attr, dummy, x, word_vectors, is_training_set=True):
     """
     生成distance metric
@@ -276,7 +264,6 @@ def generate_distance_df(attr, dummy, x, word_vectors, is_training_set=True):
     return distance
 
 
-@time_elapse
 def get_column_word_vector(columns, word_vectors, wordID, word_vector_dict, size):
     """
     遍例欄名(即維度值),取出相應word vector,若無則賦值0向量,可保證之後index時不出error
@@ -297,7 +284,6 @@ def get_column_word_vector(columns, word_vectors, wordID, word_vector_dict, size
     return new_word_vector_dict
 
 
-@time_elapse
 def calculate_distance(row, item_word_vector, column):
     """
     計算一個指定維度的距離
@@ -332,7 +318,6 @@ def calculate_distance(row, item_word_vector, column):
     return df
 
 
-@time_elapse
 def column_average_word_vector(row, column_word_vector_dict, full_column_list, size):
     """
     分別取每格内所有单字的word vector平均
@@ -365,7 +350,6 @@ def column_average_word_vector(row, column_word_vector_dict, full_column_list, s
     return row
 
 
-@time_elapse
 def all_average_word_vector(row, column_word_vector_dict, full_column_list, size):
     """
     取所有欄位中所有单字的word vector平均
@@ -392,6 +376,21 @@ def all_average_word_vector(row, column_word_vector_dict, full_column_list, size
     vector /= len(full_column_list)
     row["word_vec_average_all"] = vector
     return row
+
+
+def gen_print_var():
+    return [
+        "m",
+        "n",
+        "y_definition",
+        "train_size",
+        "predict_size",
+        "framework_model",
+        "train_elapse",
+        "predict_elapse",
+        "metric_accuracy",
+        "run_time",
+    ]
 
 
 if __name__ == "__main__":

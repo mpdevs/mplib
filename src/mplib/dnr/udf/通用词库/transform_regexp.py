@@ -5,7 +5,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 
-from mplib.common.helpers import print_line
+from mplib.common.helper import print_line
 from io import open
 
 

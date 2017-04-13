@@ -10,7 +10,7 @@ from __future__ import division
 
 from collections import defaultdict
 
-from .unicode_tools import smart_decode
+from .unicode_tool import smart_decode
 
 
 def default_branch(text=""):

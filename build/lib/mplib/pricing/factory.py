@@ -9,7 +9,8 @@ from treeinterpreter import treeinterpreter as ti
 from sklearn.metrics import r2_score
 from datetime import datetime
 from mplib.pricing.helper import vector_reshape_to_matrix, save_model_to_pickle, load_model_from_pickle
-from mplib.pricing.helper import print_all_info, save_model_to_pg, load_model_from_pg, exists_model_in_pg
+from mplib.pricing.helper import save_model_to_pg, load_model_from_pg, exists_model_in_pg, gen_print_var
+from mplib.common.helper import print_var_info
 import numpy
 import time
 
@@ -17,7 +18,7 @@ import time
 class SKAssess(object):
     def __init__(self):
         self.category_id = 50008899
-        self.interval = "201612A"
+        self.interval = "201612_test"
         self.x_train = None
         self.x_predict = None
         self.y_train = None
@@ -31,7 +32,7 @@ class SKAssess(object):
         self.n = None
         self.y_definition = "SUM(salesamt) / SUM(salesqty)"
         self.train_size = None
-        self.test_size = None
+        self.predict_size = None
         self.framework_model = "sklearn_randomforest"
         self.train_elapse = None
         self.predict_elapse = None
@@ -48,8 +49,8 @@ class SKAssess(object):
 
     def update_info(self):
         self.train_size = len(self.x_train) if self.x_train is not None else 0
-        self.test_size = len(self.x_predict) if self.x_predict is not None else 0
-        self.m = self.train_size + self.test_size
+        self.predict_size = len(self.x_predict) if self.x_predict is not None else 0
+        self.m = self.train_size + self.predict_size
         self.n = self.x_train.shape[1] if self.x_train is not None else self.x_predict.shape[1]
 
     def train(self):
@@ -94,10 +95,10 @@ class SKAssess(object):
             load_model_from_pickle(self.model_name, self.path)
 
     def print_info(self):
-        print_all_info(self.__dict__)
+        print_var_info(self.__dict__, gen_print_var())
 
     def gen_model_name(self):
-        self.model_name = "sklearn_randomforest_{0}_{1}".format(self.category_id, self.interval)
+        self.model_name = "{0}_{1}_{2}".format(self.framework_model, self.category_id, self.interval)
 
 
 if __name__ == "__main__":

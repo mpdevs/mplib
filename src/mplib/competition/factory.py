@@ -4,60 +4,69 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
-from .helper import *
+from mplib.common.helper import print_var_info
+from mplib.competition.helper import *
+from datetime import datetime
+import time
 
 
 class Hound(object):
-    def __init__(self, category_id):
-        self.data = None
+    def __init__(self):
+        self.category_id = 1623
+        self.interval = "201612"
+        self.x_train = None  # word_vec, attr_name distance mixin
+        self.y_train = None  # True or False
+        self.x_predict = None
+        self.y_predict = None
+        self.model = None
+        self.model_name = None
+        self.prediction = None
+        self.path = None  # extension for pickle file
         self.word_vectors = get_word_vector()
-        self.train_x = None  # word_vec, attr_name distance
-        self.train_y = None  # True or False
-        self.test_x = None
-        self.test_y = None
-        self.model_dict = None
         self.essential_dict = get_essential_dict()
         self.important_dict = get_important_dict()
-        self.category_id = category_id
         self.tag_dict = tag_to_dict(get_attribute_meta())
-        self.data_type = "train"
+        # region Expose to outside
+        self.m = None
+        self.n = None
+        self.y_definition = "Similarity(item1, item2)"
+        self.train_size = None
+        self.predict_size = None
+        self.framework_model = "sklearn_ensemble"
+        self.train_elapse = None
+        self.predict_elapse = None
+        self.metric_accuracy = None
+        self.run_time = datetime.now().strftime("%Y%m%d%H%M%S")
+        self.plot_file_name = None
+        # endregion
 
-    def load_data(self):
-        if self.data_type == "train":
-            self.data = get_train_data(self.category_id)
-        else:
-            self.data = get_predict_data(self.category_id)
-
-    def preprocess(self):
-        self.load_data()
-        tag_dict = self.tag_dict.get(self.category_id)
-        return construct_train_feature(self.data.values.tolist(), tag_dict)
-
-    def build_features(self):
-        self.distance = generate_distance_df(
-            self.attr,
-            self.dummy,
-            self.train,
-            self.column_word_vector_dict,
-            self.word_vectors, self.word_ids,
-            size=self.size,
-            is_training_set=True
-        )
+    def update_info(self):
+        self.train_size = len(self.x_train) if self.x_train is not None else 0
+        self.predict_size = len(self.x_predict) if self.x_predict is not None else 0
+        self.m = self.train_size + self.predict_size
+        self.n = self.x_train.shape[1] if self.x_train is not None else self.x_predict.shape[1]
 
     def train(self):
-        self.train_x, self.train_y, id1, id2 = self.preprocess()
+        self.update_info()
+        start = time.time()
+        self.model.fit(self.x_train, self.y_train)
+        self.train_elapse = time.time() - start
 
     def predict(self):
-        self.data_type = "predict"
-        self.test_x, self.test_y, id1, id2 = self.preprocess()
-
-    def observer(self):
         pass
 
-    def run(self):
-        self.train()
-        # self.predict()
+    def save_model(self):
         pass
+
+    def load_model(self):
+        pass
+
+    def print_info(self):
+        print_var_info(self.__dict__, gen_print_var())
+
+    def gen_model_name(self):
+        self.model_name = "{0}_{1}_{2}".format(self.framework_model, self.category_id, self.interval)
 
 if __name__ == "__main__":
-    Hound(1623).run()
+    Hound().print_info()
+

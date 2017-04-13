@@ -7,8 +7,13 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
-from .unicode_tools import to_unicode
-from .settings import DEBUG
+
+from collections import OrderedDict
+from datetime import datetime
+from six import iteritems
+
+from .unicode_tool import to_unicode
+from .setting import DEBUG
 
 
 def print_line(placeholder="-", repeat=50, center_word=""):
@@ -37,6 +42,28 @@ def print_line(placeholder="-", repeat=50, center_word=""):
     repeat = repeat if repeat <= 80 else 80
     center_word = " {0} ".format(to_unicode(center_word)) if center_word else center_word
     print("{0}{1}{0}".format(to_unicode(placeholder) * repeat, center_word))
+
+
+def get_print_var(var_dict, var_list):
+    od = OrderedDict()
+
+    for i in var_list:
+        od[i] = None
+
+    for k, v in iteritems(var_dict):
+        if k in list(od):
+            od[k] = v
+
+    return od
+
+
+def print_var_info(var_dict, var_list):
+    for k, v in iteritems(get_print_var(var_dict, var_list)):
+        d("{0}: {1}".format(k, v))
+
+
+def d(string):
+    print("{0} {1}".format(datetime.now(), string))
 
 
 if __name__ == "__main__":
