@@ -88,7 +88,7 @@ def split_train_test(nrows, cid, path=None):
     x_train, x_test, y_train, y_test = model_selection.train_test_split(df[:, 1:], df[:, 0], test_size=0.2, random_state=42)
     del df
 
-    prefix = join(dirname(__file__), join("data", "{0}_pricing".format(cid)))
+    prefix = join(dirname(path), join("data", "{0}_pricing".format(cid)))
     numpy.savetxt("{0}_x_train.csv".format(prefix), x_train, delimiter=",")
     numpy.savetxt("{0}_x_test.csv".format(prefix), x_test, delimiter=",")
     numpy.savetxt("{0}_y_train.csv".format(prefix), y_train, delimiter=",")
@@ -228,3 +228,7 @@ def drop_zero_columns(array):
 
 def y_approximation(vector):
     return 10 * numpy.ceil(vector / 10)
+
+
+if __name__ == "__main__":
+    print(__file__)
