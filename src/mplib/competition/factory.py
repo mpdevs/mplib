@@ -54,7 +54,7 @@ class Hound(object):
     def train(self):
         self.update_info()
         start = time.time()
-        self.model = VotingClassifier(estimators=[tuple([k, v()]) for k, v in iteritems(gen_model_dict())])
+        self.model = VotingClassifier(estimators=[tuple([k, v]) for k, v in iteritems(gen_model_dict())])
         self.model.fit(self.x_train, self.y_train)
         self.train_elapse = time.time() - start
 
@@ -91,11 +91,11 @@ class Hound(object):
         self.model_name = "{0}_{1}_{2}".format(self.framework_model, self.category_id, self.interval)
 
 if __name__ == "__main__":
-    a = Hound()
-    # a.x_train, a.x_predict, a.y_train, a.y_predict = what?
-    # a.path = __file__
-    # a.train()
-    # a.save_model()
-    # a.load_model()
-    # a.predict()
-    # a.print_info()
+    h = Hound()
+    # h.x_train, h.x_predict, h.y_train, h.y_predict = what?
+    # h.path = __file__
+    # h.train()
+    # h.save_model()
+    # h.load_model()
+    # h.predict()
+    h.print_info()

@@ -123,9 +123,3 @@ def normalize(data):
 
 if __name__ == "__main__":
     print_line()
-    print_line("a")
-    print_line("b", "30")
-    print_line("b", "30", "hello")
-    print_line("b", "a", "hello")
-    print_line("_", 100, "你好")
-    print_line(["_", "-"], 1, dict(hello="world"))
