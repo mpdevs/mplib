@@ -18,7 +18,7 @@ import time
 class SKAssess(object):
     def __init__(self):
         self.category_id = 50008899
-        self.interval = "201612_test"
+        self.interval = "201612A"
         self.x_train = None
         self.x_predict = None
         self.y_train = None
