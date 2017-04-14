@@ -4,18 +4,12 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
-
 from mplib.common.helper import get_print_var
 from mplib.common import smart_encode
-from mplib.IO import PostgreSQL
-
 from os.path import dirname, join, splitext
 from os import listdir
-
-from sklearn.externals import joblib
 from sklearn import model_selection
-
-import pickle
+from six import iteritems
 import pandas
 import numpy
 
@@ -121,7 +115,7 @@ def gen_print_var():
 
 def logging_process(locals_var):
     var_dict = get_print_var(locals_var, gen_print_var())
-    info = ",".join([str(v) for k, v in var_dict.items()])
+    info = ",".join([str(v) for k, v in iteritems(var_dict)])
     with open(get_experiment_logs_path("experiment_logs.csv"), mode="a") as f:
         f.write(smart_encode(info + "\n"))
 

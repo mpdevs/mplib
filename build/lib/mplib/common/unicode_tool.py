@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
+from six import iteritems
 import numbers
 import chardet
 
@@ -43,7 +44,7 @@ def smart_decode(obj, cast=False):
     elif isinstance(obj, list):
         return [smart_decode(i, cast=cast) for i in obj]
     elif isinstance(obj, dict):
-        return {smart_decode(k, cast=cast): smart_decode(v, cast=cast) for k, v in obj.iteritems()}
+        return {smart_decode(k, cast=cast): smart_decode(v, cast=cast) for k, v in iteritems(obj)}
     elif isinstance(obj, tuple):
         return tuple([smart_decode(i, cast=cast) for i in obj])
     else:
@@ -74,7 +75,7 @@ def smart_encode(obj, charset="utf8", cast=False):
     elif isinstance(obj, list):
         return [smart_encode(i, cast=cast) for i in obj]
     elif isinstance(obj, dict):
-        return {smart_encode(k, cast=cast): smart_encode(v, cast=cast) for k, v in obj.iteritems()}
+        return {smart_encode(k, cast=cast): smart_encode(v, cast=cast) for k, v in iteritems(obj)}
     elif isinstance(obj, tuple):
         return tuple([smart_encode(i, cast=cast) for i in obj])
 
@@ -103,7 +104,7 @@ def change_charset(obj, to_charset="utf8"):
         return [change_charset(i) for i in obj]
 
     elif isinstance(obj, dict):
-        return {change_charset(k): change_charset(v) for k, v in obj.iteritems()}
+        return {change_charset(k): change_charset(v) for k, v in iteritems(obj)}
 
     elif isinstance(obj, tuple):
         return tuple([change_charset(i) for i in obj])

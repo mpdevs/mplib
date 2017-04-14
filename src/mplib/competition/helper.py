@@ -33,7 +33,7 @@ def get_external_json():
 
 def get_word_vector():
     ret = PostgreSQL().query("SELECT value FROM json_value WHERE name = 'word_vector'")[0].get("value")
-    return {k: numpy.array(v) for k, v in ret.iteritems()}
+    return {k: numpy.array(v) for k, v in iteritems(ret)}
 
 
 def get_essential_dict():
