@@ -19,9 +19,9 @@ def save_pickle_to_pg(category_id):
     d = pickle.dumps(pickle_load(path, "pkl"))
     sql = """
     INSERT INTO bytes_value
-    (id, name, value)
+    (name, value)
     VALUES
-    (2, 'pricing_sklearn_randomforest_{category_id}', %s)
+    ('pricing_sklearn_randomforest_{category_id}', %s)
     """.format(category_id=category_id)
     PostgreSQL().execute(sql, (d,))
 

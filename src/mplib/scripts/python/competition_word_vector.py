@@ -69,9 +69,9 @@ def to_db():
     db = PostgreSQL()
     sql = """
     INSERT INTO json_value
-    (id, value, name)
+    (value, name)
     VALUES
-    (1, %s, 'word_vector')
+    (%s, 'word_vector')
     """
     db.execute(sql, (d,))
 

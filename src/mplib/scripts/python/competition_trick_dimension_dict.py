@@ -28,8 +28,8 @@ def parse(df):
 def essential_csv_to_db():
     od = parse(pandas.read_table("essential_tag_data.csv", encoding="utf8", sep=","))
     sql = """
-    INSERT INTO json_value (id, value, name)
-    VALUES (2, %s, 'essential_dict')
+    INSERT INTO json_value (value, name)
+    VALUES (%s, 'essential_dict')
     """
     PostgreSQL().execute(sql, (json.dumps(od),))
 
@@ -42,8 +42,8 @@ def essential_read_db():
 def important_csv_to_db():
     od = parse(pandas.read_table("important_tag_data.csv", encoding="utf8", sep=","))
     sql = """
-    INSERT INTO json_value (id, value, name)
-    VALUES (3, %s, 'important_dict')
+    INSERT INTO json_value (value, name)
+    VALUES (%s, 'important_dict')
     """
     PostgreSQL().execute(sql, (json.dumps(od),))
 

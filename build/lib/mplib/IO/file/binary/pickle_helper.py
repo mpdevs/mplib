@@ -10,7 +10,7 @@ from __future__ import absolute_import
 from __future__ import with_statement
 from __future__ import print_function
 from __future__ import division
-from os.path import splitext
+from os.path import splitext, basename, dirname, join
 from io import open
 import pickle
 
@@ -23,15 +23,12 @@ def pickle_dump(file_name, dump_object, ext="pickle"):
     :param ext:
     :return:
     """
-    if splitext(__file__)[-1][1] == ext:
-        pickle_name = file_name
-    else:
-        pickle_name = "{0}.{1}".format(file_name, ext)
+    dir_name = dirname(file_name)
+    file_name, ext_name = splitext(basename(file_name))
+    pickle_name = "{0}.{1}".format(file_name, ext)
 
-    with open(pickle_name, "wb") as f:
+    with open(join(dir_name, pickle_name), "wb") as f:
         pickle.dump(dump_object, f)
-
-    return
 
 
 def pickle_load(file_name, ext="pickle"):
@@ -41,12 +38,11 @@ def pickle_load(file_name, ext="pickle"):
     :param ext:
     :return:
     """
-    if splitext(__file__)[-1][1] == "pickle":
-        pickle_name = file_name
-    else:
-        pickle_name = "{0}.{1}".format(file_name, ext)
+    dir_name = dirname(file_name)
+    file_name, ext_name = splitext(basename(file_name))
+    pickle_name = "{0}.{1}".format(file_name, ext)
 
-    with open(pickle_name, "rb") as f:
+    with open(join(dir_name, pickle_name), "rb") as f:
         load_object = pickle.load(f)
 
     return load_object
