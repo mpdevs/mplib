@@ -8,12 +8,18 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 
+from sklearn.externals import joblib
+from os.path import dirname, join
 from collections import OrderedDict
+from mplib.IO import PostgreSQL
 from datetime import datetime
 from six import iteritems
 
 from .unicode_tool import to_unicode
 from .setting import DEBUG
+
+import pickle
+import numpy
 
 
 def print_line(placeholder="-", repeat=50, center_word=""):
@@ -64,6 +70,55 @@ def print_var_info(var_dict, var_list):
 
 def d(string):
     print("{0} {1}".format(datetime.now(), string))
+
+
+def save_model_to_pickle(model_obj, model_name, path=None):
+    path = path if path else __file__
+    joblib.dump(model_obj, "{0}.pkl".format(join(dirname(path), join("models", model_name))))
+
+
+def save_model_to_pg(model_obj, model_name):
+    sql = """
+    INSERT INTO text_value
+    (name, value)
+    VALUES
+    ('{model_name}', %s)
+    """.format(model_name=model_name)
+    PostgreSQL().execute(sql, (pickle.dumps(model_obj),))
+
+
+def load_model_from_pickle(model_name, path=None):
+    path = path if path else __file__
+    return joblib.load("{0}.pkl".format(join(dirname(path), join("models", model_name))))
+
+
+def load_model_from_pg(model_name):
+    sql = """
+        SELECT value
+        FROM text_value
+        WHERE name = '{model_name}'
+        """.format(model_name=model_name)
+    return pickle.loads(PostgreSQL().query(sql)[0].get("value"))
+
+
+def exists_model_in_pg(model_name):
+    sql = """
+        SELECT 1
+        FROM text_value
+        WHERE name = '{model_name}'
+        """.format(model_name=model_name)
+    ret = PostgreSQL().query(sql)
+    return True if ret else False
+
+
+def vector_reshape_to_matrix(v):
+    return v.reshape(len(v), 1)
+
+
+def normalize(data):
+    data -= numpy.mean(data)
+    data /= numpy.std(data)
+    return data
 
 
 if __name__ == "__main__":

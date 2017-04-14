@@ -4,9 +4,18 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import SVC
+from sklearn.externals import joblib
 from scipy.spatial.distance import cosine, cityblock, euclidean, chebyshev, canberra, braycurtis
 from collections import OrderedDict
+from os.path import dirname, join
 from six import iteritems
+import pickle
 import pandas
 import numpy
 import re
@@ -391,6 +400,18 @@ def gen_print_var():
         "metric_accuracy",
         "run_time",
     ]
+
+
+def gen_model_dict():
+    model_dict = OrderedDict()
+    model_dict["rf"] = RandomForestClassifier
+    model_dict["gb"] = GradientBoostingClassifier
+    model_dict["lr"] = LogisticRegression
+    model_dict["kn"] = KNeighborsClassifier
+    model_dict["ada"] = AdaBoostClassifier
+    model_dict["nb"] = GaussianNB
+    model_dict["svm"] = SVC
+    return model_dict
 
 
 if __name__ == "__main__":

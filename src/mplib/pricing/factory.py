@@ -8,9 +8,9 @@ from sklearn.ensemble import RandomForestRegressor
 from treeinterpreter import treeinterpreter as ti
 from sklearn.metrics import r2_score
 from datetime import datetime
-from mplib.pricing.helper import vector_reshape_to_matrix, save_model_to_pickle, load_model_from_pickle
-from mplib.pricing.helper import save_model_to_pg, load_model_from_pg, exists_model_in_pg, gen_print_var
-from mplib.common.helper import print_var_info
+from mplib.pricing.helper import gen_print_var
+from mplib.common.helper import save_model_to_pg, load_model_from_pg, load_model_from_pickle, save_model_to_pickle
+from mplib.common.helper import print_var_info, exists_model_in_pg, vector_reshape_to_matrix
 import numpy
 import time
 
@@ -78,7 +78,8 @@ class SKAssess(object):
         self.metric_r2 = r2_score(self.y_predict, self.prediction, multioutput="variance_weighted")
 
     def save_model(self):
-        if self.model_name is None: self.gen_model_name()
+        if self.model_name is None:
+            self.gen_model_name()
 
         if self.path is None:
             if not exists_model_in_pg(self.model_name):
@@ -87,7 +88,8 @@ class SKAssess(object):
             save_model_to_pickle(self.model, self.model_name, self.path)
 
     def load_model(self):
-        if self.model_name is None: self.gen_model_name()
+        if self.model_name is None:
+            self.gen_model_name()
 
         if self.path is None:
             self.model = load_model_from_pg(self.model_name)
@@ -105,6 +107,7 @@ if __name__ == "__main__":
     from mplib.pricing.helper import get_items
     a = SKAssess()
     a.x_train, a.x_predict, a.y_train, a.y_predict = get_items(nrows=100, cid=50008899, path=__file__)
+    a.path = __file__
     a.train()
     a.save_model()
     a.load_model()

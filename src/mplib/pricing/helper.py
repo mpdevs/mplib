@@ -98,16 +98,6 @@ def split_train_test(nrows, cid, path=None):
     return x_train, x_test, y_train, y_test
 
 
-def normalize(data):
-    data -= numpy.mean(data)
-    data /= numpy.std(data)
-    return data
-
-
-def vector_reshape_to_matrix(v):
-    return v.reshape(len(v), 1)
-
-
 def gen_print_var():
     return [
         "m",
@@ -127,45 +117,6 @@ def gen_print_var():
         "metric_e20",
         "run_time",
     ]
-
-
-def save_model_to_pickle(model_obj, model_name, path=None):
-    path = path if path else __file__
-    joblib.dump(model_obj, "{0}.pkl".format(join(dirname(path), join("models", model_name))))
-
-
-def save_model_to_pg(model_obj, model_name):
-    sql = """
-    INSERT INTO text_value
-    (name, value)
-    VALUES
-    ('{model_name}', %s)
-    """.format(model_name=model_name)
-    PostgreSQL().execute(sql, (pickle.dumps(model_obj),))
-
-
-def load_model_from_pickle(model_name, path=None):
-    path = path if path else __file__
-    return joblib.load("{0}.pkl".format(join(dirname(path), join("models", model_name))))
-
-
-def load_model_from_pg(model_name):
-    sql = """
-        SELECT value
-        FROM text_value
-        WHERE name = '{model_name}'
-        """.format(model_name=model_name)
-    return pickle.loads(PostgreSQL().query(sql)[0].get("value"))
-
-
-def exists_model_in_pg(model_name):
-    sql = """
-        SELECT 1
-        FROM text_value
-        WHERE name = '{model_name}'
-        """.format(model_name=model_name)
-    ret = PostgreSQL().query(sql)
-    return True if ret else False
 
 
 def logging_process(locals_var):
