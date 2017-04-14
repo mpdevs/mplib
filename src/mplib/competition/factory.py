@@ -82,7 +82,7 @@ class Hound(object):
         if self.path is None:
             self.model = load_model_from_pg(self.model_name)
         else:
-            load_model_from_pickle(self.model_name, self.path)
+            self.model = load_model_from_pickle(self.model_name, self.path)
 
     def print_info(self):
         print_var_info(self.__dict__, gen_print_var())
