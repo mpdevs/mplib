@@ -31,7 +31,7 @@ def excel_col_name(index, lowercase=False):
     :param lowercase:
     :return:
     """
-    return index >= 0 and excel_col_name(index / 26 - 1) + chr(97 if lowercase else 65 + index % 26) or ""
+    return index >= 0 and excel_col_name(index // 26 - 1) + chr(97 if lowercase else 65 + index % 26) or ""
 
 
 def g_excel_col_name(index, lowercase=False):
@@ -61,11 +61,11 @@ def g_alphabet(index, lowercase=False):
 
 
 if __name__ == "__main__":
-    from helpers import print_line
-    print_line(center_word=g_fib.__name__)
+    from mplib.common.helper import print_line
+    print_line(center_word="g_fib")
     print([i for i in g_fib(6)])
-    print_line(center_word=g_alphabet.__name__)
+    print_line(center_word="g_alphabet")
     print([i for i in g_alphabet(100, True)])
     print([i for i in g_alphabet(100, False)])
-    print_line(center_word=g_excel_col_name.__name__)
+    print_line(center_word="g_excel_col_name")
     print([i for i in g_excel_col_name(27)])
