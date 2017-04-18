@@ -4,15 +4,23 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
-from mplib.common.setting import HIVE_CONNECTION
-from mplib.common import smart_decode
+from mplib.common.setting import HIVE_CONNECTION, IDC_HIVE_CONNECTION
+from mplib.common import smart_decode, smart_encode
 import pyhs2
 
 
+def get_env(env="local"):
+    env_dict = dict(
+        local=HIVE_CONNECTION,
+        idc=IDC_HIVE_CONNECTION,
+    )
+    return env_dict.get(env, HIVE_CONNECTION)
+
+
 class Hive:
-    def __init__(self, pool_name="poolHigh"):
+    def __init__(self, pool_name="poolHigh", env="local"):
         # 设置超时时间30秒无响应即关闭连接
-        self.conn = pyhs2.connect(**HIVE_CONNECTION)
+        self.conn = pyhs2.connect(**get_env(env))
         self.pool_name = pool_name
 
     def get(self, sql):
@@ -28,7 +36,7 @@ class Hive:
         with self.conn.cursor() as cursor:
             # 设置pool
             cursor.execute("set mapred.fairscheduler.pool={0}".format(self.pool_name))
-            cursor.execute(sql.encode("utf8"))
+            cursor.execute(smart_encode(sql))
             columns = [smart_decode(row["columnName"]) for row in cursor.getSchema()]
             rows = [dict(zip(columns, [smart_decode(cell) for cell in row])) for row in cursor]
             self.close()
@@ -42,7 +50,7 @@ class Hive:
         with self.conn.cursor() as cursor:
             # 设置pool
             cursor.execute("set mapred.fairscheduler.pool={0}".format(self.pool_name))
-            cursor.execute(sql.encode("utf8"))
+            cursor.execute(smart_encode(sql))
             columns = [smart_decode(row["columnName"]) for row in cursor.getSchema()]
             rows = [dict(zip(columns, [smart_decode(cell) for cell in row])) for row in cursor]
             self.close()
@@ -51,10 +59,21 @@ class Hive:
             else:
                 return 0
 
+    def execute(self, sql):
+        with self.conn.cursor() as cursor:
+            # 设置pool
+            cursor.execute("set mapred.fairscheduler.pool={0}".format(self.pool_name))
+            for s in sql.split(";"):
+                if s:
+                    cursor.execute(smart_encode(s))
+            self.close()
+
     def close(self):
         self.conn.close()
 
 
 if __name__ == "__main__":
-    print(Hive().query("SHOW TABLES"))
+    from pprint import pprint
+    Hive(env="idc").execute("CREATE TABLE tmp(id string); DROP TABLE tmp;")
+    pprint(Hive(env="idc").query("SHOW TABLES"))
 

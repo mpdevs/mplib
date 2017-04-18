@@ -22,7 +22,7 @@ try:
 except ImportError:
     pass
 try:
-    from mplib.IO import Hive
+    from mplib.IO import Hive  # 可能会有本地文件操作, 不一定要成功导入
 except ImportError:
     pass
 
@@ -73,10 +73,6 @@ def get_train_data(category_id):
     WHERE c.CategoryID = {category_id}
     """.format(category_id=category_id)
     return pandas.DataFrame(Hive().query(sql))
-
-
-def get_predict_data(category_id):
-    return
 
 
 def do_word_to_vec():
@@ -201,10 +197,6 @@ def do_essential_trick():
 
 
 def do_important_trick():
-    return
-
-
-def serialize():
     return
 
 
@@ -384,6 +376,10 @@ def all_average_word_vector(row, column_word_vector_dict, full_column_list, size
     return row
 
 
+def get_x():
+    return
+
+
 def gen_print_var():
     return [
         "m",
@@ -400,15 +396,15 @@ def gen_print_var():
 
 
 def gen_model_dict():
-    model_dict = OrderedDict()
-    model_dict["rf"] = RandomForestClassifier()
-    model_dict["gb"] = GradientBoostingClassifier()
-    model_dict["lr"] = LogisticRegression()
-    model_dict["kn"] = KNeighborsClassifier()
-    model_dict["ada"] = AdaBoostClassifier()
-    model_dict["nb"] = GaussianNB()
-    model_dict["svm"] = SVC()
-    return model_dict
+    return dict(
+        rf=RandomForestClassifier(),
+        gb=GradientBoostingClassifier(),
+        lr=LogisticRegression(),
+        kn=KNeighborsClassifier(),
+        ada=AdaBoostClassifier(),
+        nb=GaussianNB(),
+        svm=SVC(),
+    )
 
 
 if __name__ == "__main__":
