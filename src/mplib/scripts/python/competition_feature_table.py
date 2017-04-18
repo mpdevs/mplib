@@ -7,6 +7,9 @@ from __future__ import division
 from mplib.IO import PostgreSQL, Hive
 
 
+ENV = "idc"
+
+
 def create_attrname_columns(category_id=50000697):
     sql = """
     drop table if exists mpintranet.attrname;
@@ -136,11 +139,11 @@ def create_attrname_columns(category_id=50000697):
     select itemid, attrvalue from mpintranet.attrname_result
     ;
     """
-    Hive().execute(sql.format(category_id))
+    Hive(env=ENV).execute(sql.format(category_id))
 
 
 def insert_attrname_columns_to_pg():
-    ret = Hive().query("SELECT attrname FROM mpintranet.attrname_result LIMIT 1")
+    ret = Hive(env=ENV).query("SELECT attrname FROM mpintranet.attrname_result LIMIT 1")
     if len(ret) > 0:
         attrnames = ret[0]["attrname"]
         ret = PostgreSQL().query("SELECT * FROM text_value WHERE name = 'attrname_columns'")
@@ -274,11 +277,11 @@ def create_attrname_attrvalue_columns(category_id):
     select itemid, tag from mpintranet.attrvalue_result
     ;
     """
-    Hive.execute(sql.format(category_id))
+    Hive(env=ENV).execute(sql.format(category_id))
 
 
 def insert_attrname_attrvalue_columns_to_pg():
-    ret = Hive.query("SELECT attrvalue FROM mpintranet.attrvalue_result LIMIT 1")
+    ret = Hive(env=ENV).query("SELECT attrvalue FROM mpintranet.attrvalue_result LIMIT 1")
     if len(ret) > 0:
         attrvalues = ret[0]["attrvalue"]
         rows = PostgreSQL().query("SELECT * FROM text_value WHERE name = 'attrname_attrvalue_columns'")
@@ -296,10 +299,10 @@ def create_table_item_tagged():
     CREATE TABLE women_clothing_item_attr_t AS
     SELECT itemid, CONCAT_WS(',', COLLECT_SET(CONCAT(attrname, ':' ,attrvalue))) AS data
     FROM women_clothing_item_attr
-    GROUP BY itemid
-    ;
+    GROUP BY itemid;
+
     """
-    Hive().execute(sql)
+    Hive(env=ENV).execute(sql)
 
 
 if __name__ == "__main__":

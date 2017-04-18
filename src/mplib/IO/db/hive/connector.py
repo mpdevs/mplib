@@ -64,7 +64,7 @@ class Hive:
             # 设置pool
             cursor.execute("set mapred.fairscheduler.pool={0}".format(self.pool_name))
             for s in sql.split(";"):
-                if s:
+                if s.strip():
                     cursor.execute(smart_encode(s))
             self.close()
 
