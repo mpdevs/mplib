@@ -287,3 +287,20 @@ def insert_attrname_attrvalue_columns_to_pg():
         else:
             sql = "INSERT INTO text_value (name, value) VALUES('attrname_attrvalue_columns', '{0}')".format(attrvalues)
         PostgreSQL().execute(sql)
+
+
+def create_table_item_tagged():
+    sql = """
+    USE elengjing;
+    DROP TABLE IF EXISTS women_clothing_item_attr_t;
+    CREATE TABLE women_clothing_item_attr_t AS
+    SELECT itemid, CONCAT_WS(',', COLLECT_SET(CONCAT(attrname, ':' ,attrvalue))) AS data
+    FROM women_clothing_item_attr
+    GROUP BY itemid
+    ;
+    """
+    Hive().execute(sql)
+
+
+if __name__ == "__main__":
+    create_table_item_tagged()
