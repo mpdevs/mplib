@@ -24,6 +24,15 @@ DAS_PRO_MYSQL_CONNECTION = dict(
 )
 
 
+LJ_TEST_MYSQL_CONNECTION = dict(
+    host="172.16.1.100",
+    port=3306,
+    db="elengjing",
+    user="test",
+    passwd="123",
+)
+
+
 HIVE_CONNECTION = dict(
     database="das",
     host="172.16.1.12",

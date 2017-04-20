@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
-from mplib.common.setting import MYSQL_SETTINGS, DAS_PRO_MYSQL_CONNECTION
+from mplib.common.setting import MYSQL_SETTINGS, DAS_PRO_MYSQL_CONNECTION, LJ_TEST_MYSQL_CONNECTION
 from mplib.common import smart_decode
 import MySQLdb
 
@@ -12,6 +12,7 @@ import MySQLdb
 def get_env(env="das_pro"):
     env_dict = dict(
         das_pro=DAS_PRO_MYSQL_CONNECTION,
+        lj_test=LJ_TEST_MYSQL_CONNECTION,
         mpportal=MYSQL_SETTINGS,
     )
     return env_dict.get(env, DAS_PRO_MYSQL_CONNECTION)
@@ -86,3 +87,4 @@ class MPMySQL(object):
 if __name__ == "__main__":
     print(MPMySQL().query("SELECT now() AS time;", fetchone=True))
     print(MPMySQL().query("SELECT now() AS time;"))
+    print(MPMySQL(env="lj_test").query("select now() AS time;"))
