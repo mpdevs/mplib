@@ -27,10 +27,7 @@ except ImportError:
     pass
 
 
-def get_external_json():
-    return PostgreSQL().query("SELECT value FROM json_value")
-
-
+# region filters
 def get_word_vector():
     ret = PostgreSQL().query("SELECT value FROM json_value WHERE name = 'word_vector'")[0].get("value")
     return {k: numpy.array(v) for k, v in iteritems(ret)}
@@ -57,22 +54,88 @@ def get_attribute_meta():
     return pandas.DataFrame(PostgreSQL().query(sql))
 
 
+def do_dimension_trick(itd, etd, row):
+    """
+    利用重要维度法和必要维度法筛除一部分的预测数据, 减少计算量
+    :param itd: 重要维度字典 OrderedDict
+    :param etd: 必要维度字典 OrderedDict
+    :param row: 行数据 row[0]:attr1, row[1]:attr2
+    :return:
+    """
+    if not itd or not etd:
+        return True
+
+    a1 = attributes_string_to_dict(row[0])
+    a2 = attributes_string_to_dict(row[1])
+
+    # region 重要维度法
+    a1_dim_intersection = set(list(a1)) & set(list(itd))
+    a2_dim_intersection = set(list(a2)) & set(list(itd))
+
+    if len(a1_dim_intersection) < 3 or len(a2_dim_intersection) < 3:
+        return False
+    # endregion
+    # region 必要维度法
+    public_intersection = a1_dim_intersection & a2_dim_intersection
+    a1_only_dim_intersection = set([x for x in a1_dim_intersection if x not in public_intersection])
+    a2_only_dim_intersection = set([x for x in a2_dim_intersection if x not in public_intersection])
+
+    if not a1_only_dim_intersection and not a2_only_dim_intersection:
+        return True
+
+    for dim in public_intersection:
+        a1_values = set(a1[dim]) & set(etd[dim])
+        a2_values = set(a2[dim]) & set(etd[dim])
+
+        if a1_values == a2_values:
+            pass
+        elif not a1_values and not a2_values:
+            pass
+        else:
+            return False
+
+    for dim in a1_dim_intersection:
+        values = set(a1[dim]) & set(etd[dim])
+        if values:
+            return False
+
+    for dim in a2_dim_intersection:
+        values = set(a2[dim]) & set(etd[dim])
+        if values:
+            return False
+
+    return True
+    # endregion
+
+
+def attributes_string_to_dict(attributes):
+    od = OrderedDict()
+    for attribute in attributes.split(","):
+        node = attribute.split(";")
+        if node[0] in list(od):
+            od[node[0]].append(node[1])
+        else:
+            od[node[0]] = [node[1]]
+    return od
+# endregion
+
+
 def get_train_data(category_id):
     sql = """
     SELECT
-        a1.attr AS attr1,
-        a2.attr AS attr2,
+        a1.data AS attr1,
+        a2.data AS attr2,
         c.score,
         c.SourceItemID AS itemid1,
         c.TargetItemID AS itemid2
-    FROM elengjing.train_data_for_competitive_items AS c
+    FROM elengjing.competitive_items_train_data AS c
     JOIN elengjing.women_clothing_item_attr_t AS a1
     ON c.SourceItemID = a1.itemid
     JOIN elengjing.women_clothing_item_attr_t AS a2
     ON c.TargetItemID = a2.itemid
     WHERE c.CategoryID = {category_id}
     """.format(category_id=category_id)
-    return pandas.DataFrame(Hive().query(sql))
+    return pandas.DataFrame(Hive(env="idc").query(sql))
 
 
 def do_word_to_vec():
@@ -190,14 +253,6 @@ def tag_to_dict(df):
             attr_name_value_dict[row[1]] = row[2].split(",")
         tag_dict[category_id] = attr_name_value_dict
     return tag_dict
-
-
-def do_essential_trick():
-    return
-
-
-def do_important_trick():
-    return
 
 
 def generate_distance_df(attr, dummy, x, word_vectors, is_training_set=True):
@@ -408,4 +463,5 @@ def gen_model_dict():
 
 
 if __name__ == "__main__":
-    print(len(get_train_data(1623)))
+    # print(len(get_train_data(1623)))
+    print(list(get_essential_dict()))

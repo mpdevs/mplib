@@ -5,11 +5,12 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 from mplib.competition.helper import gen_print_var, get_word_vector, get_essential_dict, get_important_dict
-from mplib.competition.helper import get_attribute_meta, tag_to_dict, gen_model_dict
+from mplib.competition.helper import get_attribute_meta, tag_to_dict, gen_model_dict, do_dimension_trick
 from mplib.common.helper import print_var_info, save_model_to_pickle, load_model_from_pickle, vector_reshape_to_matrix
 from mplib.common.helper import save_model_to_pg, load_model_from_pg, exists_model_in_pg
 from sklearn.ensemble import VotingClassifier
 from sklearn.metrics import accuracy_score
+from functools import partial
 from datetime import datetime
 from six import iteritems
 import time
@@ -28,9 +29,6 @@ class Hound(object):
         self.prediction = None
         self.path = None  # extension for pickle file
         self.word_vectors = get_word_vector()
-        self.essential_dict = get_essential_dict()
-        self.important_dict = get_important_dict()
-        self.tag_dict = tag_to_dict(get_attribute_meta())
         # region Expose to outside
         self.m = None
         self.n = None
@@ -90,6 +88,27 @@ class Hound(object):
     def gen_model_name(self):
         self.model_name = "{0}_{1}_{2}".format(self.framework_model, self.category_id, self.interval)
 
+
+class GoldMiner(object):
+    def __init__(self):
+        self.essential_dict = get_essential_dict()
+        self.important_dict = get_important_dict()
+        self.tag_dict = tag_to_dict(get_attribute_meta())
+        self.category_id = None
+        self.data = None
+
+    def pan(self):
+        if self.category_id is not None:
+            self.essential_dict = self.essential_dict[self.category_id]
+            self.important_dict = self.important_dict[self.category_id]
+
+        if self.data:
+            self.data = list(filter(partial(do_dimension_trick, self.important_dict, self.essential_dict), self.data))
+
+    def smelt(self):
+        for line in self.data:
+            print("\t".join(line))
+
 if __name__ == "__main__":
     h = Hound()
     # h.x_train, h.x_predict, h.y_train, h.y_predict = what?
@@ -99,3 +118,6 @@ if __name__ == "__main__":
     # h.load_model()
     # h.predict()
     h.print_info()
+    # gm = GoldMiner()
+    # gm.data = get_data
+    # gm.pan().smelt()
