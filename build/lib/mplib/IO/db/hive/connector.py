@@ -18,13 +18,18 @@ def get_env(env="local"):
 
 
 class Hive:
-    def __init__(self, pool_name="poolHigh", env="local"):
+    def __init__(self, env="local", pool_name="poolHigh"):
         # 设置超时时间30秒无响应即关闭连接
         self.conn = pyhs2.connect(**get_env(env))
-        self.pool_name = pool_name
+        self.cursor = self.conn.cursor()
+        if env == "idc":
+            self.pool_name = pool_name
+            self.cursor.execute("set mapred.fairscheduler.pool={0}".format(self.pool_name))
+            self.cursor.execute("set ngmr.partition.automerge=true")
+            self.cursor.execute("set ngmr.partition.mergesize.mb=200")
 
     def get(self, sql):
-        rows = self.query(sql.encode("utf8"))
+        rows = self.query(smart_encode(sql))
         return rows[0] if len(rows) > 0 else None
 
     def query(self, sql, meta=False):
@@ -33,42 +38,34 @@ class Hive:
         :param meta: True的时候同时返回表头信息
         :return:
         """
-        with self.conn.cursor() as cursor:
-            # 设置pool
-            cursor.execute("set mapred.fairscheduler.pool={0}".format(self.pool_name))
-            cursor.execute(smart_encode(sql))
-            columns = [smart_decode(row["columnName"]) for row in cursor.getSchema()]
-            rows = [dict(zip(columns, [smart_decode(cell) for cell in row])) for row in cursor]
-            self.close()
+        self.cursor.execute(smart_encode(sql))
+        columns = [smart_decode(row["columnName"]) for row in self.cursor.getSchema()]
+        rows = [dict(zip(columns, [smart_decode(cell) for cell in row])) for row in self.cursor]
+        self.close()
 
-            if meta:
-                return rows, columns
-            else:
-                return rows
+        if meta:
+            return rows, columns
+        else:
+            return rows
 
     def total(self, sql):
-        with self.conn.cursor() as cursor:
-            # 设置pool
-            cursor.execute("set mapred.fairscheduler.pool={0}".format(self.pool_name))
-            cursor.execute(smart_encode(sql))
-            columns = [smart_decode(row["columnName"]) for row in cursor.getSchema()]
-            rows = [dict(zip(columns, [smart_decode(cell) for cell in row])) for row in cursor]
-            self.close()
-            if rows:
-                return rows[0][columns[0]]
-            else:
-                return 0
+        self.cursor.execute(smart_encode(sql))
+        columns = [smart_decode(row["columnName"]) for row in self.cursor.getSchema()]
+        rows = [dict(zip(columns, [smart_decode(cell) for cell in row])) for row in self.cursor]
+        self.close()
+        if rows:
+            return rows[0][columns[0]]
+        else:
+            return 0
 
     def execute(self, sql):
-        with self.conn.cursor() as cursor:
-            # 设置pool
-            cursor.execute("set mapred.fairscheduler.pool={0}".format(self.pool_name))
-            for s in sql.split(";"):
-                if s.strip():
-                    cursor.execute(smart_encode(s))
-            self.close()
+        for s in sql.split(";"):
+            if s.strip():
+                self.cursor.execute(smart_encode(s))
+        self.close()
 
     def close(self):
+        self.cursor.close()
         self.conn.close()
 
 
