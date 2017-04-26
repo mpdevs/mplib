@@ -106,7 +106,9 @@ class GoldMiner(object):
 
         if self.data:
             self.data = list(filter(partial(do_dimension_trick, self.important_dict, self.essential_dict), self.data))
-            self.data = list(map(partial(make_similarity_feature, self.tag_dict), self.data))
+
+    def refine(self):
+        self.data = list(map(partial(make_similarity_feature, self.tag_dict), self.data))
 
     def smelt(self):
         for line in self.data:

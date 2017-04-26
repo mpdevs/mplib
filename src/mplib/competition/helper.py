@@ -202,7 +202,7 @@ def make_similarity_feature(tag_dict, row):
         except ZeroDivisionError:
             feature.append(similarity)
 
-    return [row[2], row[3], ",".join(smart_encode(feature, cast=True))]
+    return row[2:4] + [",".join(smart_encode(feature, cast=True))] + row[4:]
 
 
 def material_string_to_dict(material):
