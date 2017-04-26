@@ -26,5 +26,4 @@ if __name__ == '__main__':
         gm.smelt()
 
     except Exception as e:
-        with open('/tmp/tagging_udf.log', 'a') as f:
-            f.write('{0}: {1}'.format(datetime.datetime.now(), traceback.format_exc()))
+        print("\t".join(["ERROR"] * 3 + [traceback.format_exc()]))

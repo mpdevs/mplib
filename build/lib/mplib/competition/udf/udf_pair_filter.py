@@ -20,6 +20,7 @@ try:
     gm.category_id = "1623"
     gm.data = data
     gm.pan()
+    gm.refine()
     gm.smelt()
 
 except Exception as e:
