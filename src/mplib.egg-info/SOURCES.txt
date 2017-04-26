@@ -37,6 +37,7 @@ src/mplib/competition/factory.py
 src/mplib/competition/helper.py
 src/mplib/competition/udf/__init__.py
 src/mplib/competition/udf/udf_item_competition.py
+src/mplib/competition/udf/udf_pair_filter.py
 src/mplib/dnr/__init__.py
 src/mplib/dnr/api.py
 src/mplib/dnr/api_kun.py
