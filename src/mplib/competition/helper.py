@@ -111,11 +111,11 @@ def do_dimension_trick(itd, etd, row):
 def attributes_string_to_dict(attributes):
     od = OrderedDict()
     for attribute in attributes.split(","):
-        node = attribute.split(";")
-        if node[0] in list(od):
-            od[node[0]].append(node[1])
+        dim, value = attribute.split(":")
+        if dim in list(od):
+            od[dim].append(value)
         else:
-            od[node[0]] = [node[1]]
+            od[dim] = [value]
     return od
 # endregion
 

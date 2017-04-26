@@ -35,6 +35,7 @@ src/mplib/common/unicode_tool.py
 src/mplib/competition/__init__.py
 src/mplib/competition/factory.py
 src/mplib/competition/helper.py
+src/mplib/competition/test.py
 src/mplib/competition/udf/__init__.py
 src/mplib/competition/udf/udf_item_competition.py
 src/mplib/competition/udf/udf_pair_filter.py
