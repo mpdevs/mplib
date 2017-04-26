@@ -32,15 +32,19 @@ class Hive:
         rows = self.query(smart_encode(sql))
         return rows[0] if len(rows) > 0 else None
 
-    def query(self, sql, meta=False):
+    def query(self, sql, meta=False, to_dict=True):
         """
         :param sql:
         :param meta: True的时候同时返回表头信息
+        :param to_dict: True将返回字典类型, False返回列表类型
         :return:
         """
         self.cursor.execute(smart_encode(sql))
         columns = [smart_decode(row["columnName"]) for row in self.cursor.getSchema()]
-        rows = [dict(zip(columns, [smart_decode(cell) for cell in row])) for row in self.cursor]
+        if to_dict:
+            rows = [dict(zip(columns, [smart_decode(cell) for cell in row])) for row in self.cursor]
+        else:
+            rows = smart_decode([row for row in self.cursor])
         self.close()
 
         if meta:
@@ -71,5 +75,6 @@ class Hive:
 
 if __name__ == "__main__":
     from pprint import pprint
-    Hive(env="idc").execute("CREATE TABLE tmp(id string); DROP TABLE tmp;")
+    Hive(env="idc").execute("CREATE TABLE alahubake(id string); DROP TABLE alahubake;")
     pprint(Hive(env="idc").query("SHOW TABLES"))
+    pprint(Hive(env="idc").query("SELECT dateid, date FROM dimdate LIMIT 1", to_dict=False))

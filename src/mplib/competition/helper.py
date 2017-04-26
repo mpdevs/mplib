@@ -62,49 +62,52 @@ def do_dimension_trick(itd, etd, row):
     :param row: 行数据 row[0]:attr1, row[1]:attr2
     :return:
     """
-    if not itd or not etd:
+    try:
+        if not itd or not etd:
+            return True
+
+        a1 = attributes_string_to_dict(row[0])
+        a2 = attributes_string_to_dict(row[1])
+
+        # region 重要维度法
+        a1_dim_intersection = set(list(a1)) & set(list(itd))
+        a2_dim_intersection = set(list(a2)) & set(list(itd))
+
+        if len(a1_dim_intersection) < 3 or len(a2_dim_intersection) < 3:
+            return False
+        # endregion
+        # region 必要维度法
+        public_intersection = a1_dim_intersection & a2_dim_intersection
+        a1_only_dim_intersection = set([x for x in a1_dim_intersection if x not in public_intersection])
+        a2_only_dim_intersection = set([x for x in a2_dim_intersection if x not in public_intersection])
+
+        if not a1_only_dim_intersection and not a2_only_dim_intersection:
+            return True
+
+        for dim in public_intersection:
+            a1_values = set(a1[dim]) & set(etd[dim])
+            a2_values = set(a2[dim]) & set(etd[dim])
+
+            if a1_values == a2_values:
+                pass
+            elif not a1_values and not a2_values:
+                pass
+            else:
+                return False
+
+        for dim in a1_dim_intersection:
+            values = set(a1[dim]) & set(etd[dim])
+            if values:
+                return False
+
+        for dim in a2_dim_intersection:
+            values = set(a2[dim]) & set(etd[dim])
+            if values:
+                return False
         return True
 
-    a1 = attributes_string_to_dict(row[0])
-    a2 = attributes_string_to_dict(row[1])
-
-    # region 重要维度法
-    a1_dim_intersection = set(list(a1)) & set(list(itd))
-    a2_dim_intersection = set(list(a2)) & set(list(itd))
-
-    if len(a1_dim_intersection) < 3 or len(a2_dim_intersection) < 3:
+    except:
         return False
-    # endregion
-    # region 必要维度法
-    public_intersection = a1_dim_intersection & a2_dim_intersection
-    a1_only_dim_intersection = set([x for x in a1_dim_intersection if x not in public_intersection])
-    a2_only_dim_intersection = set([x for x in a2_dim_intersection if x not in public_intersection])
-
-    if not a1_only_dim_intersection and not a2_only_dim_intersection:
-        return True
-
-    for dim in public_intersection:
-        a1_values = set(a1[dim]) & set(etd[dim])
-        a2_values = set(a2[dim]) & set(etd[dim])
-
-        if a1_values == a2_values:
-            pass
-        elif not a1_values and not a2_values:
-            pass
-        else:
-            return False
-
-    for dim in a1_dim_intersection:
-        values = set(a1[dim]) & set(etd[dim])
-        if values:
-            return False
-
-    for dim in a2_dim_intersection:
-        values = set(a2[dim]) & set(etd[dim])
-        if values:
-            return False
-
-    return True
     # endregion
 
 

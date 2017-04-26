@@ -94,7 +94,7 @@ class GoldMiner(object):
         self.essential_dict = get_essential_dict()
         self.important_dict = get_important_dict()
         self.tag_dict = tag_to_dict(get_attribute_meta())
-        self.category_id = None
+        self.category_id = "1623"
         self.data = None
 
     def pan(self):

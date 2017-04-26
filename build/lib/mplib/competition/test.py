@@ -5,9 +5,10 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 from mplib.competition import GoldMiner
+from mplib.IO import Hive, pickle_dump, pickle_load
 
 
-def gold_miner_unit_test():
+def gold_miner_local_test():
     gm = GoldMiner()
     print(list(gm.essential_dict))
     gm.category_id = "1623"
@@ -23,4 +24,17 @@ def gold_miner_unit_test():
     gm.smelt()
 
 
-gold_miner_unit_test()
+def get_minerals_from_hive():
+    pickle_dump("raw_data", Hive(env="idc").query(sql="SELECT customer_attr, target_attr, customer_item_id, target_item_id FROM competitive_filtering_stage_1 LIMIT 10000;", to_dict=False))
+
+
+def gold_miner_hive_test():
+    gm = GoldMiner()
+    gm.data = pickle_load("raw_data")
+    gm.pan()
+    gm.smelt()
+
+if __name__ == "__main__":
+    # gold_miner_unit_test()
+    # get_minerals_from_hive()
+    gold_miner_hive_test()
