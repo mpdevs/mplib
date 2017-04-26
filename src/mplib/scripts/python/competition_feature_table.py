@@ -12,132 +12,129 @@ ENV = "idc"
 
 def create_attrname_columns(category_id=50000697):
     sql = """
-    drop table if exists mpintranet.attrname;
-    CREATE TABLE  if not exists mpintranet.attrname(
-    attrname  String
-    )
+    DROP TABLE IF EXISTS mpintranet.attrname;
+    CREATE TABLE IF NOT EXISTS mpintranet.attrname(attrname STRING)
     CLUSTERED BY (attrname) INTO 113 BUCKETS
-    STORED AS ORC
-    ;
+    STORED AS ORC;
 
-    insert into table mpintranet.attrname
-    select attrname from elengjing.women_clothing_item_attr where categoryid = {0} group by attrname
-    ;
+    INSERT INTO TABLE mpintranet.attrname
+    SELECT attrname
+    FROM elengjing.women_clothing_item_attr
+    WHERE categoryid = {0}
+    GROUP BY attrname;
 
-    drop table if exists mpintranet.itemid;
-    CREATE TABLE  if not exists mpintranet.itemid(
-    itemid  BIGINT
-    )
+    DROP TABLE IF EXISTS mpintranet.itemid;
+    CREATE TABLE IF NOT EXISTS mpintranet.itemid(itemid BIGINT)
     CLUSTERED BY (itemid) INTO 113 BUCKETS
-    STORED AS ORC
-    ;
+    STORED AS ORC;
 
-    insert into table mpintranet.itemid
-    select itemid from elengjing.women_clothing_item_attr where categoryid = {0} group by itemid
-    ;
+    INSERT INTO TABLE mpintranet.itemid
+    SELECT itemid
+    FROM elengjing.women_clothing_item_attr
+    WHERE categoryid = {0}
+    GROUP BY itemid;
 
-    drop table if exists mpintranet.item_attr;
-    CREATE TABLE  if not exists mpintranet.item_attr(
-    itemid  BIGINT,
-    attrname  String,
-    attrvalue  String
+    DROP TABLE IF EXISTS mpintranet.item_attr;
+    CREATE TABLE IF NOT EXISTS mpintranet.item_attr(
+        itemid BIGINT,
+        attrname STRING,
+        attrvalue STRING
     )
     CLUSTERED BY (itemid) INTO 581 BUCKETS
     STORED AS ORC;
 
-    insert into table mpintranet.item_attr
-    select
-    t.itemid, t.attrname, group_concat(t.attrvalue, ":") as attrvalue
-    from
+    INSERT INTO TABLE mpintranet.item_attr
+    SELECT
+        t.itemid,
+        t.attrname,
+        GROUP_CONCAT(t.attrvalue, ":") AS attrvalue
+    FROM
     (
         SELECT
-        itemid, attrname, attrvalue
+            itemid,
+            attrname,
+            attrvalue
         FROM
-        elengjing.women_clothing_item_attr where categoryid = {0}
+        elengjing.women_clothing_item_attr
+        WHERE categoryid = {0}
         DISTRIBUTE BY itemid, attrname
-        SORT BY attrvalue desc
-    ) t
-    group by t.itemid, t.attrname
-    ;
+        SORT BY attrvalue DESC
+    ) AS t
+    GROUP BY t.itemid, t.attrname;
 
-    drop table if exists mpintranet.itemid_attrname;
-    CREATE TABLE  if not exists mpintranet.itemid_attrname(
-    itemid  BIGINT,
-    attrname  String
+    DROP TABLE IF EXISTS mpintranet.itemid_attrname;
+    CREATE TABLE IF NOT EXISTS mpintranet.itemid_attrname(
+        itemid  BIGINT,
+        attrname  STRING
     )
     CLUSTERED BY (itemid) INTO 581 BUCKETS
     STORED AS ORC;
 
-    insert into table mpintranet.itemid_attrname
-    select
-    b.itemid,
-    a.attrname
-    from
-    mpintranet.attrname a
-    cross join
-    mpintranet.itemid b
-    ;
+    INSERT INTO TABLE mpintranet.itemid_attrname
+    SELECT
+        b.itemid,
+        a.attrname
+    FROM mpintranet.attrname a
+    CROSS JOIN mpintranet.itemid b;
 
-    drop table if exists mpintranet.itemid_attrname_attrvalue;
-    CREATE TABLE  if not exists mpintranet.itemid_attrname_attrvalue(
-    itemid  BIGINT,
-    attrname  String,
-    attrvalue  String
+    DROP TABLE IF EXISTS mpintranet.itemid_attrname_attrvalue;
+    CREATE TABLE IF NOT EXISTS mpintranet.itemid_attrname_attrvalue(
+        itemid  BIGINT,
+        attrname  STRING,
+        attrvalue  STRING
     )
     CLUSTERED BY (itemid) INTO 783 BUCKETS
-    STORED AS ORC
-    ;
+    STORED AS ORC;
 
-    insert into table mpintranet.itemid_attrname_attrvalue
-    select
-    a.itemid,
-    a.attrname,
-    nvl(b.attrvalue, '')
-    from
-    mpintranet.itemid_attrname a
-    left join
-    mpintranet.item_attr b
-    on a.itemid = b.itemid and a.attrname = b.attrname
-    ;
-
-    drop table if exists mpintranet.attrname_result;
-    CREATE TABLE  if not exists mpintranet.attrname_result(
-    itemid  BIGINT,
-    attrname  String,
-    attrvalue  String
-    )
-    CLUSTERED BY (itemid) INTO 113 BUCKETS
-    STORED AS ORC
-    ;
-
-    insert into table mpintranet.attrname_result
-
-    select
-    t.itemid, group_concat(t.attrname, ",") as attrname, group_concat(t.attrvalue, ",") as attrvalue
-    from
-    (
+    INSERT INTO TABLE mpintranet.itemid_attrname_attrvalue
     SELECT
-    itemid, attrname, attrvalue
-    FROM
-    mpintranet.itemid_attrname_attrvalue
-    DISTRIBUTE BY itemid
-    SORT BY attrname desc
-    ) t
-    group by t.itemid
-    ;
+        a.itemid,
+        a.attrname,
+        NVL(b.attrvalue, '') AS attrvalue
+    FROM mpintranet.itemid_attrname a
+    LEFT JOIN mpintranet.item_attr b
+    ON a.itemid = b.itemid
+    AND a.attrname = b.attrname;
 
-    drop table if exists mpintranet.attrname_export;
-    CREATE TABLE  if not exists mpintranet.attrname_export(
-    itemid  BIGINT,
-    attrvalue  String
+    DROP TABLE IF EXISTS mpintranet.attrname_result;
+    CREATE TABLE IF NOT EXISTS mpintranet.attrname_result(
+        itemid  BIGINT,
+        attrname  STRING,
+        attrvalue  STRING
     )
     CLUSTERED BY (itemid) INTO 113 BUCKETS
-    STORED AS ORC
-    ;
+    STORED AS ORC;
 
-    insert into table mpintranet.attrname_export
-    select itemid, attrvalue from mpintranet.attrname_result
-    ;
+    INSERT INTO TABLE mpintranet.attrname_result
+    SELECT
+        t.itemid,
+        GROUP_CONCAT(t.attrname, ",") AS attrname,
+        GROUP_CONCAT(t.attrvalue, ",") AS attrvalue
+    FROM
+    (
+        SELECT
+            itemid,
+            attrname,
+            attrvalue
+        FROM mpintranet.itemid_attrname_attrvalue
+        DISTRIBUTE BY itemid
+        SORT BY attrname DESC
+    ) AS t
+    GROUP BY t.itemid;
+
+    DROP TABLE IF EXISTS mpintranet.attrname_export;
+    CREATE TABLE IF NOT EXISTS mpintranet.attrname_export(
+        itemid  BIGINT,
+        attrvalue  STRING
+    )
+    CLUSTERED BY (itemid) INTO 113 BUCKETS
+    STORED AS ORC;
+
+    INSERT INTO TABLE mpintranet.attrname_export
+    SELECT
+        itemid,
+        attrvalue
+    FROM mpintranet.attrname_result;
     """
     Hive(env=ENV).execute(sql.format(category_id))
 
@@ -158,124 +155,119 @@ def create_attrname_attrvalue_columns(category_id):
     sql = """
 
     -------- 1 产生中间表
-    drop table if exists mpintranet.attrvalue;
-    CREATE TABLE  if not exists mpintranet.attrvalue(
-    attrvalue  String
-    )
+    DROP TABLE IF EXISTS mpintranet.attrvalue;
+    CREATE TABLE IF NOT EXISTS mpintranet.attrvalue(attrvalue STRING)
     CLUSTERED BY (attrvalue) INTO 113 BUCKETS
-    STORED AS ORC
-    ;
-    insert into table mpintranet.attrvalue
-    select concat(attrname, '_', attrvalue) from elengjing.women_clothing_item_attr where categoryid = {0} group by concat(attrname, '_', attrvalue)
-    ;
-    drop table if exists mpintranet.itemid;
-    CREATE TABLE  if not exists mpintranet.itemid(
-    itemid  BIGINT
-    )
+    STORED AS ORC;
+
+    INSERT INTO TABLE mpintranet.attrvalue
+    SELECT CONCAT(attrname, '_', attrvalue) AS attrvalue
+    FROM elengjing.women_clothing_item_attr
+    WHERE categoryid = {0}
+    GROUP BY attrvalue;
+
+    DROP TABLE IF EXISTS mpintranet.itemid;
+    CREATE TABLE IF NOT EXISTS mpintranet.itemid(itemid  BIGINT)
     CLUSTERED BY (itemid) INTO 113 BUCKETS
-    STORED AS ORC
-    ;
+    STORED AS ORC;
 
-    insert into table mpintranet.itemid
-    select itemid from elengjing.women_clothing_item_attr where categoryid = {0} group by itemid
-    ;
-    drop table if exists mpintranet.item_attr;
-    CREATE TABLE  if not exists mpintranet.item_attr(
-    itemid  BIGINT,
-    attrvalue  String
-    )
-    CLUSTERED BY (itemid) INTO 581 BUCKETS
-    STORED AS ORC
-    ;
+    INSERT INTO TABLE mpintranet.itemid
+    SELECT itemid
+    FROM elengjing.women_clothing_item_attr
+    WHERE categoryid = {0}
+    GROUP BY itemid;
 
-    insert into table mpintranet.item_attr
-    select
-    itemid, concat(attrname, '_', attrvalue) as attrvalue
-    from
-    elengjing.women_clothing_item_attr
-    where categoryid = {0}
-    ;
-    ------- 产生全量属性表
-    drop table if exists mpintranet.itemid_attrvalue;
-    CREATE TABLE  if not exists mpintranet.itemid_attrvalue(
-    itemid  BIGINT,
-    attrvalue  String
+    DROP TABLE IF EXISTS mpintranet.item_attr;
+    CREATE TABLE IF NOT EXISTS mpintranet.item_attr(
+        itemid BIGINT,
+        attrvalue STRING
     )
     CLUSTERED BY (itemid) INTO 581 BUCKETS
     STORED AS ORC;
 
-    insert into table mpintranet.itemid_attrvalue
-    select
-    b.itemid,
-    a.attrvalue
-    from
-    mpintranet.attrvalue a
-    cross join
-    mpintranet.itemid b
-    ;
-    ---------join 全量表 ，产出结果
-    drop table if exists mpintranet.itemid_attrvalue_tag;
-    CREATE TABLE  if not exists mpintranet.itemid_attrvalue_tag(
-    itemid  BIGINT,
-    attrvalue  String,
-    tag  String
+    INSERT INTO TABLE mpintranet.item_attr
+    SELECT
+        itemid,
+        CONCAT(attrname, '_', attrvalue) AS attrvalue
+    FROM elengjing.women_clothing_item_attr
+    WHERE categoryid = {0};
+    ------- 产生全量属性表
+    DROP TABLE IF EXISTS mpintranet.itemid_attrvalue;
+    CREATE TABLE IF NOT EXISTS mpintranet.itemid_attrvalue(
+        itemid  BIGINT,
+        attrvalue  STRING
+    )
+    CLUSTERED BY (itemid) INTO 581 BUCKETS
+    STORED AS ORC;
+
+    INSERT INTO TABLE mpintranet.itemid_attrvalue
+    SELECT
+        b.itemid,
+        a.attrvalue
+    FROM mpintranet.attrvalue AS a
+    CROSS JOIN mpintranet.itemid AS b;
+    ---------JOIN 全量表 ，产出结果
+    DROP TABLE IF EXISTS mpintranet.itemid_attrvalue_tag;
+    CREATE TABLE IF NOT EXISTS mpintranet.itemid_attrvalue_tag(
+        itemid BIGINT,
+        attrvalue STRING,
+        tag STRING
     )
     CLUSTERED BY (itemid) INTO 783 BUCKETS
-    STORED AS ORC
-    ;
+    STORED AS ORC;
 
-    set mapred.reduce.tasks=500;
-    insert into table mpintranet.itemid_attrvalue_tag
-    select
-    a.itemid,
-    a.attrvalue,
-    if(b.itemid is null, '0', '1')
-    from
-    mpintranet.itemid_attrvalue a
-    left join
-    mpintranet.item_attr b
-    on a.itemid = b.itemid and a.attrvalue = b.attrvalue
-    ;
-    ---------- join 结果表
-    drop table if exists mpintranet.attrvalue_result;
-    CREATE TABLE  if not exists mpintranet.attrvalue_result(
-    itemid  BIGINT,
-    attrvalue  String,
-    tag  String
-    )
-    CLUSTERED BY (itemid) INTO 113 BUCKETS
-    STORED AS ORC
-    ;
-
-    set mapred.reduce.tasks=-1;
-    insert into table mpintranet.attrvalue_result
-
-    select
-    t.itemid, group_concat(t.attrvalue, ",") as attrvalue,  group_concat(t.tag, ",") as tag
-    from
-    (
+    SET mapred.reduce.tasks=500;
+    INSERT INTO TABLE mpintranet.itemid_attrvalue_tag
     SELECT
-    itemid, attrvalue, tag, split(attrvalue, ',')[0] as attrname
-    FROM
-    mpintranet.itemid_attrvalue_tag
-    DISTRIBUTE BY itemid
-    SORT BY attrname desc
-    ) t
-    group by t.itemid
-    ;
-    ------------end-------------
-    drop table if exists mpintranet.attrvalue_export;
-    CREATE TABLE  if not exists mpintranet.attrvalue_export(
-    itemid  BIGINT,
-    tag  String
+        a.itemid,
+        a.attrvalue,
+        IF(b.itemid IS NULL, '0', '1') AS tag
+    FROM mpintranet.itemid_attrvalue a
+    LEFT JOIN mpintranet.item_attr b
+    ON a.itemid = b.itemid
+    AND a.attrvalue = b.attrvalue;
+    ---------- JOIN 结果表
+    DROP TABLE IF EXISTS mpintranet.attrvalue_result;
+    CREATE TABLE IF NOT EXISTS mpintranet.attrvalue_result(
+        itemid BIGINT,
+        attrvalue STRING,
+        tag STRING
     )
     CLUSTERED BY (itemid) INTO 113 BUCKETS
-    STORED AS ORC
-    ;
+    STORED AS ORC;
 
-    insert into table mpintranet.attrvalue_export
-    select itemid, tag from mpintranet.attrvalue_result
-    ;
+    SET mapred.reduce.tasks = -1;
+    INSERT INTO TABLE mpintranet.attrvalue_result
+    SELECT
+        t.itemid,
+        GROUP_CONCAT(t.attrvalue, ",") AS attrvalue,
+        GROUP_CONCAT(t.tag, ",") AS tag
+    FROM
+    (
+        SELECT
+            itemid,
+            attrvalue,
+            tag,
+            SPLIT(attrvalue, ',')[0] AS attrname
+        FROM mpintranet.itemid_attrvalue_tag
+        DISTRIBUTE BY itemid
+        SORT BY attrname DESC
+    ) AS t
+    GROUP BY t.itemid;
+    ------------end-------------
+    DROP TABLE IF EXISTS mpintranet.attrvalue_export;
+    CREATE TABLE IF NOT EXISTS mpintranet.attrvalue_export(
+        itemid BIGINT,
+        tag STRING
+    )
+    CLUSTERED BY (itemid) INTO 113 BUCKETS
+    STORED AS ORC;
+
+    INSERT INTO TABLE mpintranet.attrvalue_export
+    SELECT
+        itemid,
+        tag
+    FROM mpintranet.attrvalue_result;
     """
     Hive(env=ENV).execute(sql.format(category_id))
 
@@ -300,7 +292,6 @@ def create_table_item_tagged():
     SELECT itemid, CONCAT_WS(',', COLLECT_SET(CONCAT(attrname, ':' ,attrvalue))) AS data
     FROM women_clothing_item_attr
     GROUP BY itemid;
-
     """
     Hive(env=ENV).execute(sql)
 

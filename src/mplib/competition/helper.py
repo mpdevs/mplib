@@ -11,6 +11,7 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 from scipy.spatial.distance import cosine, cityblock, euclidean, chebyshev, canberra, braycurtis
+from mplib.common import smart_encode
 from collections import OrderedDict
 from six import iteritems
 import pandas
@@ -51,7 +52,7 @@ def get_attribute_meta():
     WHERE industry_id = 16
     AND attr_name != '品牌'
     """
-    return pandas.DataFrame(PostgreSQL().query(sql))
+    return pandas.DataFrame(PostgreSQL().query(sql)).astype(unicode)
 
 
 def do_dimension_trick(itd, etd, row):
@@ -149,31 +150,6 @@ def get_distance():
     return
 
 
-def construct_train_feature(raw_data, tag_dict):
-    x = []
-    y = []
-
-    id1 = []
-    id2 = []
-
-    for row in raw_data:
-        attr1 = row[0]
-        attr2 = row[1]
-
-        feature_vector = construct_feature(attr1=attr1, attr2=attr2, tag_dict=tag_dict)
-
-        if len(feature_vector) != len(tag_dict):
-            print("not ok")
-
-        x.append(feature_vector)
-        y.append(row[2])
-
-        id1.append(row[3])
-        id2.append(row[4])
-
-    return numpy.array(x), numpy.array(y), numpy.array(id1), numpy.array(id2)
-
-
 def construct_feature(attr1, attr2, tag_dict):
     attr1, attr2 = attributes_to_dict(attr1), attributes_to_dict(attr2)
     return make_similarity_feature(attr1=attr1, attr2=attr2, tag_dict=tag_dict)
@@ -190,8 +166,11 @@ def attributes_to_dict(attributes):
     return od
 
 
-def make_similarity_feature(attr1, attr2, tag_dict):
+def make_similarity_feature(tag_dict, row):
+    attr1 = attributes_string_to_dict(row[0])
+    attr2 = attributes_string_to_dict(row[1])
     feature = []
+
     for attr_name, attr_value_list in iteritems(tag_dict):
         similarity = 0.
         if attr_name == "材质成分":
@@ -208,19 +187,22 @@ def make_similarity_feature(attr1, attr2, tag_dict):
             continue
 
         try:
-            set(attr_value_list)
-        except TypeError:
+            s = set(attr_value_list)
+            a1 = set(attr1[attr_name])
+            a2 = set(attr2[attr_name])
+        except:
             feature.append(similarity)
             continue
 
-        set1 = set(attr_value_list) & set(attr1.get(attr_name))
-        set2 = set(attr_value_list) & set(attr2.get(attr_name))
+        set1 = s & a1
+        set2 = s & a2
+
         try:
             feature.append(round(len(set1 & set2) / len(set1 | set2), 4))
         except ZeroDivisionError:
             feature.append(similarity)
 
-    return feature
+    return [row[2], row[3], ",".join(smart_encode(feature, cast=True))]
 
 
 def material_string_to_dict(material):

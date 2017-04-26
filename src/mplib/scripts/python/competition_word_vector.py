@@ -17,7 +17,7 @@ def get_attr_pnv():
       attr_name, attr_value
     FROM attr_value
     WHERE industry_id = 16
-     AND attr_name <> '品牌'
+    AND attr_name <> '品牌'
     """
     ret = db.query(sql)
     s = list()

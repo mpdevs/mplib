@@ -4,8 +4,10 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
-from mplib.competition import GoldMiner
+from mplib.competition import GoldMiner, Hound
 from mplib.IO import Hive, pickle_dump, pickle_load
+from mplib.common import smart_decode
+from six import iteritems
 
 
 def gold_miner_local_test():
@@ -30,9 +32,19 @@ def get_minerals_from_hive():
 
 def gold_miner_hive_test():
     gm = GoldMiner()
-    gm.data = pickle_load("raw_data")
+    gm.data = smart_decode(pickle_load("raw_data"), cast=True)
     gm.pan()
+    print(len(gm.data))
     gm.smelt()
+
+
+def get_train_data_from_hive():
+    pickle_dump("cleaned_data", Hive(env="idc").query(sql="", to_dict=False))
+
+
+def train_hound():
+    h = Hound()
+    h.data = smart_decode(pickle_load("raw_data"), cast=True)
 
 if __name__ == "__main__":
     # gold_miner_unit_test()

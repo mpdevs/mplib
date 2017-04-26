@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from mplib.competition.helper import gen_print_var, get_word_vector, get_essential_dict, get_important_dict
 from mplib.competition.helper import get_attribute_meta, tag_to_dict, gen_model_dict, do_dimension_trick
+from mplib.competition.helper import make_similarity_feature
 from mplib.common.helper import print_var_info, save_model_to_pickle, load_model_from_pickle, vector_reshape_to_matrix
 from mplib.common.helper import save_model_to_pg, load_model_from_pg, exists_model_in_pg
 from sklearn.ensemble import VotingClassifier
@@ -99,11 +100,13 @@ class GoldMiner(object):
 
     def pan(self):
         if self.category_id is not None:
-            self.essential_dict = self.essential_dict[self.category_id]
-            self.important_dict = self.important_dict[self.category_id]
+            self.essential_dict = self.essential_dict.get(self.category_id)
+            self.important_dict = self.important_dict.get(self.category_id)
+            self.tag_dict = self.tag_dict.get(self.category_id)
 
         if self.data:
             self.data = list(filter(partial(do_dimension_trick, self.important_dict, self.essential_dict), self.data))
+            self.data = list(map(partial(make_similarity_feature, self.tag_dict), self.data))
 
     def smelt(self):
         for line in self.data:
