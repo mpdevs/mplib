@@ -296,4 +296,5 @@ def gen_model_dict():
 if __name__ == "__main__":
     # print(len(get_train_data(1623)))
     # print(list(get_essential_dict()))
-    print(get_attr_head())
+    # print(get_attr_head())
+    print(len(get_dummy_head()))
