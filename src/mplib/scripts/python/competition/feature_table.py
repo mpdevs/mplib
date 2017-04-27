@@ -2,12 +2,14 @@
 # __author__: u"John"
 from __future__ import unicode_literals, absolute_import, print_function, division
 from mplib.IO import PostgreSQL, Hive
+from mplib.common import time_elapse
 
 
 ENV = "idc"
 
 
-def create_attrname_columns(category_id=50000697):
+@time_elapse
+def create_attrname(category_id):
     sql = """
     DROP TABLE IF EXISTS mpintranet.attrname;
     CREATE TABLE IF NOT EXISTS mpintranet.attrname(attrname STRING)
@@ -136,7 +138,8 @@ def create_attrname_columns(category_id=50000697):
     Hive(env=ENV).execute(sql.format(category_id))
 
 
-def insert_attrname_columns_to_pg():
+@time_elapse
+def insert_attrname_to_pg():
     ret = Hive(env=ENV).query("SELECT attrname FROM mpintranet.attrname_result LIMIT 1")
     if len(ret) > 0:
         attrnames = ret[0]["attrname"]
@@ -145,10 +148,11 @@ def insert_attrname_columns_to_pg():
             sql = "UPDATE text_value SET value = '{0}' WHERE name = 'attrname_columns'".format(attrnames)
         else:
             sql = "INSERT INTO text_value (name, value) VALUES('attrname_columns', '{0}')".format('', attrnames)
-        PostgreSQL.execute(sql)
+        PostgreSQL().execute(sql)
 
 
-def create_attrname_attrvalue_columns(category_id):
+@time_elapse
+def create_attrvalue(category_id):
     sql = """
 
     -------- 1 产生中间表
@@ -161,7 +165,7 @@ def create_attrname_attrvalue_columns(category_id):
     SELECT CONCAT(attrname, '_', attrvalue) AS attrvalue
     FROM elengjing.women_clothing_item_attr
     WHERE categoryid = {0}
-    GROUP BY attrvalue;
+    GROUP BY CONCAT(attrname, '_', attrvalue);
 
     DROP TABLE IF EXISTS mpintranet.itemid;
     CREATE TABLE IF NOT EXISTS mpintranet.itemid(itemid  BIGINT)
@@ -213,7 +217,7 @@ def create_attrname_attrvalue_columns(category_id):
     CLUSTERED BY (itemid) INTO 783 BUCKETS
     STORED AS ORC;
 
-    SET mapred.reduce.tasks=500;
+    -- SET mapred.reduce.tasks=500;
     INSERT INTO TABLE mpintranet.itemid_attrvalue_tag
     SELECT
         a.itemid,
@@ -233,7 +237,6 @@ def create_attrname_attrvalue_columns(category_id):
     CLUSTERED BY (itemid) INTO 113 BUCKETS
     STORED AS ORC;
 
-    SET mapred.reduce.tasks = -1;
     INSERT INTO TABLE mpintranet.attrvalue_result
     SELECT
         t.itemid,
@@ -266,10 +269,12 @@ def create_attrname_attrvalue_columns(category_id):
         tag
     FROM mpintranet.attrvalue_result;
     """
+    # print(sql.format(category_id))
     Hive(env=ENV).execute(sql.format(category_id))
 
 
-def insert_attrname_attrvalue_columns_to_pg():
+@time_elapse
+def insert_attrvalue_to_pg():
     ret = Hive(env=ENV).query("SELECT attrvalue FROM mpintranet.attrvalue_result LIMIT 1")
     if len(ret) > 0:
         attrvalues = ret[0]["attrvalue"]
@@ -281,6 +286,7 @@ def insert_attrname_attrvalue_columns_to_pg():
         PostgreSQL().execute(sql)
 
 
+@time_elapse
 def create_table_item_tagged():
     sql = """
     USE elengjing;
@@ -294,4 +300,9 @@ def create_table_item_tagged():
 
 
 if __name__ == "__main__":
-    create_table_item_tagged()
+    # create_table_item_tagged()
+    cid = 1623
+    create_attrname(cid)
+    insert_attrname_to_pg()
+    create_attrvalue(cid)
+    insert_attrvalue_to_pg()

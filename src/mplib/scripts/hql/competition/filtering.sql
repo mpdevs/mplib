@@ -41,5 +41,5 @@ DROP TABLE IF EXISTS competitive_filtering_stage_2;
 CREATE TABLE competitive_filtering_stage_2(customer_item_id STRING, target_item_id STRING, similarity STRING) STORED AS ORC;
 INSERT INTO competitive_filtering_stage_2 
 SELECT TRANSFORM(customer_attr, target_attr, customer_item_id, target_item_id) 
-USING 'python udf_pair_filter3.py' AS (customer_item_id, target_item_id, similarity)
+USING 'python udf_pair_filter3.py 1623' AS (customer_item_id, target_item_id, similarity)
 FROM competitive_filtering_stage_1;

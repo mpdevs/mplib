@@ -7,18 +7,19 @@ import traceback
 import sys
 
 
-reload(sys)
-sys.setdefaultencoding("utf8")
+if __name__ == "__main__":
+    reload(sys)
+    sys.setdefaultencoding("utf8")
 
-try:
-    data = [line for line in sys.stdin]
-    data = list(map(lambda x: smart_decode(x).replace("\n", "").replace("\r", "").split("\t"), data))
-    gm = GoldMiner()
-    gm.category_id = "1623"
-    gm.data = data
-    gm.pan()
-    gm.refine()
-    gm.smelt()
+    try:
+        data = [line for line in sys.stdin]
+        data = list(map(lambda x: smart_decode(x).replace("\n", "").replace("\r", "").split("\t"), data))
+        gm = GoldMiner()
+        gm.category_id = sys.argv[1]
+        gm.data = data
+        gm.pan()
+        gm.refine()
+        gm.smelt()
 
-except Exception as e:
-    print("\t".join([traceback.format_exc(), "ERROR", "ERROR", "ERROR"]))
+    except Exception as e:
+        print("\t".join([traceback.format_exc(), "ERROR", "ERROR", "ERROR"]))
