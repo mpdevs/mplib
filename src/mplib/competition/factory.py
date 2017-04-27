@@ -1,9 +1,6 @@
 # coding: utf-8
 # __author__: u"John"
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import division
+from __future__ import unicode_literals, absolute_import, print_function, division
 from mplib.competition.helper import gen_print_var, get_word_vector, get_essential_dict, get_important_dict
 from mplib.competition.helper import get_attribute_meta, tag_to_dict, gen_model_dict, do_dimension_trick
 from mplib.competition.helper import make_similarity_feature

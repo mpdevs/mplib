@@ -1,9 +1,6 @@
 # coding: utf-8
 # __author__: u"John"
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import division
+from __future__ import unicode_literals, absolute_import, print_function, division
 from mplib.common.setting import MYSQL_SETTINGS, DAS_PRO_MYSQL_CONNECTION, LJ_TEST_MYSQL_CONNECTION
 from mplib.common import smart_decode
 import MySQLdb
