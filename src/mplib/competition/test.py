@@ -77,7 +77,7 @@ def build_distance_feature():
 
 if __name__ == "__main__":
     # gold_miner_unit_test()
-    # get_minerals_from_hive()
+    get_minerals_from_hive()
     # gold_miner_hive_test()
     # gold_miner_mold()
-    build_distance_feature()
+    # build_distance_feature()
