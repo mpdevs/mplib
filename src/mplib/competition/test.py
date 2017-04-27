@@ -2,9 +2,12 @@
 # __author__: u"John"
 from __future__ import unicode_literals, absolute_import, print_function, division
 from mplib.competition import GoldMiner, Hound
+from mplib.competition.helper import get_dummy_head, get_distance, get_word_vector
 from mplib.IO import Hive, pickle_dump, pickle_load
 from mplib.common import smart_decode
-from six import iteritems
+from six import iteritems, itervalues, next
+import pandas
+import numpy
 
 
 def gold_miner_local_test():
@@ -24,7 +27,16 @@ def gold_miner_local_test():
 
 
 def get_minerals_from_hive():
-    pickle_dump("raw_data", Hive(env="idc").query(sql="SELECT customer_attr, target_attr, customer_item_id, target_item_id FROM competitive_filtering_stage_1 LIMIT 10000;", to_dict=False))
+    sql = """
+    SELECT
+        customer_attr,
+        target_attr,
+        customer_item_id,
+        target_item_id
+    FROM t_elengjing.competitive_filtering_stage_1
+    LIMIT 10000;
+    """
+    pickle_dump("raw_data", Hive(env="idc").query(sql=sql, to_dict=False))
 
 
 def gold_miner_hive_test():
@@ -36,14 +48,36 @@ def gold_miner_hive_test():
 
 
 def get_train_data_from_hive():
-    pickle_dump("cleaned_data", Hive(env="idc").query(sql="", to_dict=False))
+    sql = "SELECT * FROM t_elengjing.competitive_item_train_stage_2"
+    pickle_dump("cleaned_data", Hive(env="idc").query(sql=sql, to_dict=False))
+
+
+def gold_miner_mold():
+    gm = GoldMiner()
+    gm.data = pickle_load("cleaned_data")
+    gm.mold()
+    # df = pandas.DataFrame(pickle_load("cleaned_data"), columns=gen_header())
+    # print(df)
 
 
 def train_hound():
     h = Hound()
     h.data = smart_decode(pickle_load("raw_data"), cast=True)
 
+
+def build_distance_feature():
+    import time
+    gm = GoldMiner()
+    gm.data = pickle_load("cleaned_data")
+    print(len(gm.data))
+    start = time.time()
+    gm.mold()
+    print("elapse {0} seconds".format(time.time() - start))
+
+
 if __name__ == "__main__":
     # gold_miner_unit_test()
     # get_minerals_from_hive()
-    gold_miner_hive_test()
+    # gold_miner_hive_test()
+    # gold_miner_mold()
+    build_distance_feature()

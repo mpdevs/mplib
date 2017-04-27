@@ -302,7 +302,7 @@ def create_table_item_tagged():
 if __name__ == "__main__":
     # create_table_item_tagged()
     cid = 1623
-    create_attrname(cid)
-    insert_attrname_to_pg()
-    create_attrvalue(cid)
+    # create_attrname(cid)
+    # insert_attrname_to_pg()
+    # create_attrvalue(cid)
     insert_attrvalue_to_pg()

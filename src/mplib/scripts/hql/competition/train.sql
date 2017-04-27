@@ -24,10 +24,10 @@ SELECT
     a.customer_item_id,
     a.target_item_id,
     a.similarity,
-    cv.tag AS customer_item_attr,
-    tv.tag AS target_item_attr,
-    cn.attrvalue AS customer_item_dummy,
-    tn.attrvalue AS target_item_dummy,
+    cv.tag AS customer_item_dummy,
+    tv.tag AS target_item_dummy,
+    cn.attrvalue AS customer_item_attr,
+    tn.attrvalue AS target_item_attr,
     a.score
 FROM competitive_item_train_stage_1 AS a
 JOIN mpintranet.attrname_export AS cn

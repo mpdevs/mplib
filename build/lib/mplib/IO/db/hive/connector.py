@@ -61,7 +61,8 @@ class Hive:
 
     def execute(self, sql):
         for s in sql.split(";"):
-            if s.strip():
+            s = s.strip()
+            if s:
                 self.cursor.execute(smart_encode(s))
         self.close()
 

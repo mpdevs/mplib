@@ -2,15 +2,15 @@
 # __author__: u"John"
 from __future__ import unicode_literals, absolute_import, print_function, division
 from mplib.competition.helper import gen_print_var, get_word_vector, get_essential_dict, get_important_dict
-from mplib.competition.helper import get_attribute_meta, tag_to_dict, gen_model_dict, do_dimension_trick
-from mplib.competition.helper import make_similarity_feature
+from mplib.competition.helper import get_attribute_meta, attributes_to_dict, gen_model_dict, do_dimension_trick
+from mplib.competition.helper import make_similarity_feature, get_dummy_head, get_distance
 from mplib.common.helper import print_var_info, save_model_to_pickle, load_model_from_pickle, vector_reshape_to_matrix
 from mplib.common.helper import save_model_to_pg, load_model_from_pg, exists_model_in_pg
 from sklearn.ensemble import VotingClassifier
 from sklearn.metrics import accuracy_score
+from six import iteritems, itervalues, next
 from functools import partial
 from datetime import datetime
-from six import iteritems
 import time
 
 
@@ -26,7 +26,6 @@ class Hound(object):
         self.model_name = None
         self.prediction = None
         self.path = None  # extension for pickle file
-        self.word_vectors = get_word_vector()
         # region Expose to outside
         self.m = None
         self.n = None
@@ -89,25 +88,41 @@ class Hound(object):
 
 class GoldMiner(object):
     def __init__(self):
-        self.essential_dict = get_essential_dict()
-        self.important_dict = get_important_dict()
-        self.tag_dict = tag_to_dict(get_attribute_meta())
         self.category_id = "1623"
         self.data = None
 
     def pan(self):
-        if self.category_id is not None:
-            self.essential_dict = self.essential_dict.get(self.category_id)
-            self.important_dict = self.important_dict.get(self.category_id)
-            self.tag_dict = self.tag_dict.get(self.category_id)
-
-        if self.data:
-            self.data = list(filter(partial(do_dimension_trick, self.important_dict, self.essential_dict), self.data))
+        """
+        维度法筛选
+        :return:
+        """
+        essential_dict = get_essential_dict().get(self.category_id)
+        important_dict = get_important_dict().get(self.category_id)
+        self.data = list(filter(partial(do_dimension_trick, important_dict, essential_dict), self.data))
 
     def refine(self):
-        self.data = list(map(partial(make_similarity_feature, self.tag_dict), self.data))
+        """
+        维度字典构建相似度向量
+        :return:
+        """
+        tag_dict = attributes_to_dict(get_attribute_meta()).get(self.category_id)
+        self.data = list(map(partial(make_similarity_feature, tag_dict), self.data))
+
+    def mold(self):
+        """
+        用词向量、标签、相似度、距离公式生成最终特征
+        :return:
+        """
+        dummy_head = get_dummy_head()
+        word_vector = get_word_vector()
+        size = next(itervalues(word_vector)).shape[0]
+        self.data = list(map(partial(get_distance, dummy_head, word_vector, size), self.data))
 
     def smelt(self):
+        """
+        UDF stdout
+        :return:
+        """
         for line in self.data:
             print("\t".join(line))
 
