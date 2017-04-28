@@ -1,37 +1,33 @@
 # coding: utf-8
 # __author__: "John"
 from __future__ import unicode_literals, absolute_import, print_function, division
-from mplib.common.setting import PG_CONNECTION
+from mplib.common.setting import PG_CONNECTION, PG_UAT_CONNECTION
 from mplib.common import smart_decode
 import psycopg2.extras
 import psycopg2.pool
 import traceback
 
 
-class DatabaseSingleton(object):
-    def __new__(cls, settings=PG_CONNECTION):
-        if not hasattr(cls, "_instance"):
-            orig = super(DatabaseSingleton, cls)
-            cls._instance = orig.__new__(cls, settings)
-
-            minconn = PG_CONNECTION.get("minconn")
-            maxconn = PG_CONNECTION.get("maxconn")
-
-            dsn = "host={host} port={port} dbname={dbname} user={user} password={password}".format(**settings)
-            cls._instance.dbpool = psycopg2.pool.SimpleConnectionPool(minconn, maxconn, dsn=dsn)
-
-        return cls._instance
-
-    def __del__(self):
-        self.dbpool.closeall()
-        object.__del__(self)
+def get_env(env="pro"):
+    env_dict = dict(
+        pro=PG_CONNECTION,
+        uat=PG_UAT_CONNECTION,
+    )
+    return env_dict.get(env, PG_CONNECTION)
 
 
-class MPPG(DatabaseSingleton):
-    def __init__(self):
+class MPPG(object):
+    def __init__(self, env="pro"):
+        self.env = get_env(env)
+        self.pool = None
         self.conn = None
         self.cursor = None
         self.in_transaction = False
+        self.set_pool()
+
+    def set_pool(self):
+        dsn = "host={host} port={port} dbname={dbname} user={user} password={password}".format(**self.env)
+        self.pool = psycopg2.pool.SimpleConnectionPool(self.env.get("minconn"), self.env.get("maxconn"), dsn=dsn)
 
     def execute(self, operation, parameters=None):
         try:
@@ -78,16 +74,16 @@ class MPPG(DatabaseSingleton):
         except:
             traceback.print_exc()
             self.cursor.close()
-            self.dbpool.putconn(self.conn, close=True)
+            self.pool.putconn(self.conn, close=True)
             return False
         else:
             self.cursor.close()
-            self.dbpool.putconn(self.conn)
+            self.pool.putconn(self.conn)
             return [smart_decode(dict(r)) for r in rows]
 
     def begin(self):
         self.in_transaction = True
-        self.conn = self.dbpool.getconn()
+        self.conn = self.pool.getconn()
         self.cursor = self.conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     def commit(self):
@@ -96,10 +92,10 @@ class MPPG(DatabaseSingleton):
                 self.conn.commit()
             except:
                 self.conn.rollback()
-                self.dbpool.putconn(self.conn, close=True)
+                self.pool.putconn(self.conn, close=True)
                 traceback.print_exc()
             else:
-                self.dbpool.putconn(self.conn)
+                self.pool.putconn(self.conn)
             finally:
                 self.in_transaction = False
 
@@ -110,10 +106,11 @@ class MPPG(DatabaseSingleton):
             except:
                 traceback.print_exc()
             finally:
-                self.dbpool.putconn(self.conn, close=True)
+                self.pool.putconn(self.conn, close=True)
                 self.in_transaction = False
 
 
 if __name__ == "__main__":
     print(MPPG().query(
         "SELECT '你好' AS method, 'test' AS name UNION ALL SELECT '你好' AS method, 'test' AS name;", fetchone=True))
+    print(MPPG(env="uat").query("select now();"))

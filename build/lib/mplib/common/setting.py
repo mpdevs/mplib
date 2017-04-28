@@ -66,6 +66,16 @@ PG_CONNECTION = dict(
     maxconn=1000,
 )
 
+PG_UAT_CONNECTION = dict(
+    host="192.168.110.12",
+    port=5432,
+    user="elengjing",
+    password="Marcpoint2016",
+    dbname="mp_portal",
+    minconn=1,
+    maxconn=1000,
+)
+
 
 IMPALA_CONNECTION = dict(
     host="172.16.1.14",
