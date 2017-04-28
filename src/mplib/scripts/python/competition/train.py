@@ -1,6 +1,7 @@
 # coding: utf-8
 # __author__: u"John"
 from __future__ import unicode_literals, absolute_import, print_function, division
+from mplib.competition import Hound
 from mplib.IO import Hive
 
 
@@ -30,7 +31,7 @@ def preprocess(**kwargs):
     SELECT
         a.customer_item_id,
         a.target_item_id,
-        a.similarity,
+        a.category_id,
         cv.tag AS customer_item_dummy,
         tv.tag AS target_item_dummy,
         cn.attrvalue AS customer_item_attr,
@@ -52,12 +53,14 @@ def preprocess(**kwargs):
 
 
 def train(category_id):
+    h = Hound()
+
     return category_id
 
 
 if __name__ == "__main__":
     query_dict = dict(
         category_id=1623,
-        udf="udf_pair_train_feature1.py"
+        udf="udf_pair_similarity1.py"
     )
     preprocess(**query_dict)

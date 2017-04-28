@@ -4,12 +4,13 @@ from __future__ import unicode_literals, absolute_import, print_function, divisi
 from mplib.competition import GoldMiner, Hound
 from mplib.competition.helper import get_dummy_head, get_distance, get_word_vector
 from mplib.IO import Hive, pickle_dump, pickle_load
-from mplib.common import smart_decode
+from mplib.common import smart_decode, time_elapse
 from six import iteritems, itervalues, next
 import pandas
 import numpy
 
 
+@time_elapse
 def gold_miner_local_test():
     gm = GoldMiner()
     print(list(gm.essential_dict))
@@ -26,6 +27,7 @@ def gold_miner_local_test():
     gm.smelt()
 
 
+@time_elapse
 def get_minerals_from_hive():
     sql = """
     SELECT
@@ -39,6 +41,7 @@ def get_minerals_from_hive():
     pickle_dump("raw_data", Hive(env="idc").query(sql=sql, to_dict=False))
 
 
+@time_elapse
 def gold_miner_hive_test():
     gm = GoldMiner()
     gm.data = smart_decode(pickle_load("raw_data"), cast=True)
@@ -47,11 +50,13 @@ def gold_miner_hive_test():
     gm.smelt()
 
 
+@time_elapse
 def get_train_data_from_hive():
     sql = "SELECT * FROM t_elengjing.competitive_item_train_stage_2"
     pickle_dump("cleaned_data", Hive(env="idc").query(sql=sql, to_dict=False))
 
 
+@time_elapse
 def gold_miner_mold():
     gm = GoldMiner()
     gm.data = pickle_load("cleaned_data")
@@ -60,11 +65,13 @@ def gold_miner_mold():
     # print(df)
 
 
+@time_elapse
 def train_hound():
     h = Hound()
     h.data = smart_decode(pickle_load("raw_data"), cast=True)
 
 
+@time_elapse
 def build_distance_feature():
     import time
     gm = GoldMiner()
@@ -77,7 +84,8 @@ def build_distance_feature():
 
 if __name__ == "__main__":
     # gold_miner_unit_test()
-    get_minerals_from_hive()
+    # get_minerals_from_hive()
     # gold_miner_hive_test()
     # gold_miner_mold()
-    # build_distance_feature()
+    # get_train_data_from_hive()
+    build_distance_feature()

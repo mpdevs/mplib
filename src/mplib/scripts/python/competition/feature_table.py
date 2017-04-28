@@ -36,7 +36,6 @@ def create_attrname(category_id):
     DROP TABLE IF EXISTS mpintranet.item_attr;
     CREATE TABLE IF NOT EXISTS mpintranet.item_attr(
         itemid BIGINT,
-        attrname STRING,
         attrvalue STRING
     )
     CLUSTERED BY (itemid) INTO 581 BUCKETS
@@ -44,22 +43,11 @@ def create_attrname(category_id):
 
     INSERT INTO TABLE mpintranet.item_attr
     SELECT
-        t.itemid,
-        t.attrname,
-        GROUP_CONCAT(t.attrvalue, ":") AS attrvalue
-    FROM
-    (
-        SELECT
-            itemid,
-            attrname,
-            attrvalue
-        FROM
-        elengjing.women_clothing_item_attr
-        WHERE categoryid = {0}
-        DISTRIBUTE BY itemid, attrname
-        SORT BY attrvalue DESC
-    ) AS t
-    GROUP BY t.itemid, t.attrname;
+        itemid,
+        CONCAT(attrname, '_', attrvalue) AS attrvalue
+    FROM elengjing.women_clothing_item_attr
+    WHERE categoryid = {0}
+    GROUP BY itemid, CONCAT(attrname, '_', attrvalue);
 
     DROP TABLE IF EXISTS mpintranet.itemid_attrname;
     CREATE TABLE IF NOT EXISTS mpintranet.itemid_attrname(
@@ -154,7 +142,6 @@ def insert_attrname_to_pg():
 @time_elapse
 def create_attrvalue(category_id):
     sql = """
-
     -------- 1 产生中间表
     DROP TABLE IF EXISTS mpintranet.attrvalue;
     CREATE TABLE IF NOT EXISTS mpintranet.attrvalue(attrvalue STRING)
@@ -191,7 +178,9 @@ def create_attrvalue(category_id):
         itemid,
         CONCAT(attrname, '_', attrvalue) AS attrvalue
     FROM elengjing.women_clothing_item_attr
-    WHERE categoryid = {0};
+    WHERE categoryid = {0}
+    GROUP BY itemid, CONCAT(attrname, '_', attrvalue);
+
     ------- 产生全量属性表
     DROP TABLE IF EXISTS mpintranet.itemid_attrvalue;
     CREATE TABLE IF NOT EXISTS mpintranet.itemid_attrvalue(
@@ -207,7 +196,8 @@ def create_attrvalue(category_id):
         a.attrvalue
     FROM mpintranet.attrvalue AS a
     CROSS JOIN mpintranet.itemid AS b;
-    ---------JOIN 全量表 ，产出结果
+
+    ---------JOIN 全量表, 产出结果
     DROP TABLE IF EXISTS mpintranet.itemid_attrvalue_tag;
     CREATE TABLE IF NOT EXISTS mpintranet.itemid_attrvalue_tag(
         itemid BIGINT,
@@ -217,7 +207,7 @@ def create_attrvalue(category_id):
     CLUSTERED BY (itemid) INTO 783 BUCKETS
     STORED AS ORC;
 
-    -- SET mapred.reduce.tasks=500;
+    SET mapred.reduce.tasks=500;
     INSERT INTO TABLE mpintranet.itemid_attrvalue_tag
     SELECT
         a.itemid,
