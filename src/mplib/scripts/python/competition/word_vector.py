@@ -28,20 +28,21 @@ def get_attr_pnv():
 
 
 def get_word_vec():
-    d = []
     with open("vectors.txt", encoding="utf8") as f:
-        for line in f:
-            d.append(line.replace("\r", "").replace("\n", "").split(" "))
+        d = [line.replace("\r", "").replace("\n", "").split(" ") for line in f]
     print("get_word_vec.d:", len(d))
     return d
 
 
 def process_wv():
-    d = get_word_vec()
-    s = get_attr_pnv()
-    d = filter(lambda x: x[0] in s, d)
+    d = get_word_vec()  # d[0]词, d[1]向量
+    w = list(map(lambda x: x[0], d))  # 所有词
+    s = get_attr_pnv()  # 去重属性值
+    d = filter(lambda x: x[0] in s, d)  # 在属性值中出现的词向量
+    o = filter(lambda x: x in w, s)  # 没有在词向量中出现的属性值
     print("process_wv.d:", len(d))
     pandas.DataFrame(d, columns=None).to_csv("filtered_vectors.txt", sep=b" ", encoding="utf8", index=False, header=False)
+    pandas.DataFrame(o, columns=None).to_csv("oov.txt", sep=b" ", encoding="utf8", index=False, header=False)
 
 
 def to_csv():
@@ -81,5 +82,7 @@ def read_from_db():
 
 
 if __name__ == "__main__":
-    j = read_from_db()
-    print(len(list(j)))
+    # j = read_from_db()
+    # print(len(list(j)))
+    # get_attr_pnv()
+    process_wv()
