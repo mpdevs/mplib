@@ -207,7 +207,7 @@ def get_distance(dummy_head, word_vector, size, data):
         dummy_head, word_vector, target_dummy, target_attr, size)
     l = list(range(len(customer_vector)))
     feature = [numpy.nan_to_num(d(customer_vector[i], target_vector[i])) for i in l for d in gen_distance_method()]
-    return [data[0], data[1], feature, data[7:]]
+    return data[:3] + [feature] + data[7:]
 
 
 def build_base_feature(dummy_head, word_vector, dummy, attr, size):
