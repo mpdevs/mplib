@@ -5,7 +5,7 @@ from mplib.competition import Hound
 from mplib.IO import Hive
 
 
-def preprocess(**kwargs):
+def get_features(**kwargs):
     sql = """
     USE t_elengjing;
     ADD FILE /home/udflib/serverudf/elengjing/{udf};
@@ -36,7 +36,7 @@ def preprocess(**kwargs):
         tv.tag AS target_item_dummy,
         cn.attrvalue AS customer_item_attr,
         tn.attrvalue AS target_item_attr,
-        a.score
+        CASE WHEN a.score < 0.5 THEN 0 ELSE 1 END AS score
     FROM competitive_item_train_stage_1 AS a
     JOIN mpintranet.attrname_export AS cn
     ON a.customer_item_id = cn.itemid
@@ -48,7 +48,6 @@ def preprocess(**kwargs):
     ON a.target_item_id = tv.itemid
     WHERE a.category_id = {category_id};
     """.format(**kwargs)
-    print(sql)
     Hive(env="idc").execute(sql)
 
 

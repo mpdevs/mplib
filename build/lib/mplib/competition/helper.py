@@ -290,6 +290,15 @@ def gen_model_dict():
         nb=GaussianNB(),
         svm=SVC(),
     )
+
+
+def split_x_y(d):
+    x = []
+    y = []
+    for l in d:
+        x.append([float(s) for s in l[3].split(",")])
+        y.append(int(l[4]))
+    return numpy.array(x), numpy.array(y)
 # endregion
 
 

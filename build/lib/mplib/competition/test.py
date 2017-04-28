@@ -2,18 +2,15 @@
 # __author__: u"John"
 from __future__ import unicode_literals, absolute_import, print_function, division
 from mplib.competition import GoldMiner, Hound
-from mplib.competition.helper import get_dummy_head, get_distance, get_word_vector
+from mplib.competition.helper import split_x_y
 from mplib.IO import Hive, pickle_dump, pickle_load
 from mplib.common import smart_decode, time_elapse
-from six import iteritems, itervalues, next
-import pandas
-import numpy
+import time
 
 
 @time_elapse
 def gold_miner_local_test():
     gm = GoldMiner()
-    print(list(gm.essential_dict))
     gm.category_id = "1623"
     gm.data = [
         [
@@ -57,23 +54,25 @@ def get_train_data_from_hive():
 
 
 @time_elapse
-def gold_miner_mold():
-    gm = GoldMiner()
-    gm.data = pickle_load("cleaned_data")
-    gm.mold()
-    # df = pandas.DataFrame(pickle_load("cleaned_data"), columns=gen_header())
-    # print(df)
-
-
-@time_elapse
 def train_hound():
     h = Hound()
-    h.data = smart_decode(pickle_load("raw_data"), cast=True)
+    h.x_train, h.y_train = split_x_y(smart_decode(pickle_load("train_data"), cast=True))
+    h.train()
+    h.save_model()
+    h.print_info()
 
 
 @time_elapse
-def build_distance_feature():
-    import time
+def cast_hound():
+    h = Hound()
+    h.x_predict, h.y_predict = split_x_y(smart_decode(pickle_load("train_data"), cast=True))
+    h.load_model()
+    h.predict()
+    h.print_info()
+
+
+@time_elapse
+def gold_miner_mold():
     gm = GoldMiner()
     gm.data = pickle_load("cleaned_data")[:20]
     print(len(gm.data))
@@ -84,10 +83,18 @@ def build_distance_feature():
     print("elapse {0} seconds".format(time.time() - start))
 
 
+def get_gold_from_hive():
+    sql = "SELECT * FROM t_elengjing.competitive_item_train_stage_3"
+    pickle_dump("train_data", Hive(env="idc").query(sql, to_dict=False))
+
+
 if __name__ == "__main__":
     # gold_miner_unit_test()
     # get_minerals_from_hive()
     # gold_miner_hive_test()
     # gold_miner_mold()
     # get_train_data_from_hive()
-    build_distance_feature()
+    # gold_miner_mold()
+    # get_gold_from_hive()
+    train_hound()
+    cast_hound()
