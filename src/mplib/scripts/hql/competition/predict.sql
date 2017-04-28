@@ -1,5 +1,5 @@
 USE t_elengjing;
-ADD FILE /home/udflib/serverudf/elengjing/udf_pair_predict2.py;
+ADD FILE /home/udflib/serverudf/elengjing/udf_pair_predict3.py;
 DROP TABLE IF EXISTS competitive_item_predict;
 CREATE TABLE competitive_item_predict(
     customer_item_id BIGINT,
@@ -7,7 +7,9 @@ CREATE TABLE competitive_item_predict(
     category_id BIGINT,
     x STRING,
     y STRING
-);
+) CLUSTERED BY (category_id) INTO 113 BUCKETS
+STORED AS ORC;
+
 INSERT INTO competitive_item_predict
 SELECT TRANSFORM(
     customer_item_id,
@@ -16,7 +18,7 @@ SELECT TRANSFORM(
     x,
     y
 )
-USING 'python udf_pair_predict2.py 1623' AS (
+USING 'python udf_pair_predict3.py 1623' AS (
     customer_item_id,
     target_item_id,
     category_id,

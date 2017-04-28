@@ -16,7 +16,7 @@ import time
 
 class Hound(object):
     def __init__(self):
-        self.category_id = 1623
+        self.category_id = "1623"
         self.interval = "201612"
         self.x_train = None  # word_vec, attr_name distance mixin
         self.y_train = None  # True or False
