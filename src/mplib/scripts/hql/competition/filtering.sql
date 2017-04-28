@@ -1,6 +1,6 @@
 USE t_elengjing;
 DROP TABLE IF EXISTS competitive_filtering_stage_1;
-create TABLE competitive_filtering_stage_1 AS 
+CREATE TABLE competitive_filtering_stage_1 AS
 SELECT 
     d.data AS customer_attr,
     e.data AS target_attr,
@@ -38,8 +38,14 @@ ON c.target_item_id = e.itemid;
 
 ADD FILE /home/udflib/serverudf/elengjing/udf_pair_filter3.py;
 DROP TABLE IF EXISTS competitive_filtering_stage_2;
-CREATE TABLE competitive_filtering_stage_2(customer_item_id STRING, target_item_id STRING, similarity STRING) STORED AS ORC;
+CREATE TABLE competitive_filtering_stage_2(
+    customer_item_id STRING,
+    target_item_id STRING,
+    similarity STRING
+) STORED AS ORC;
 INSERT INTO competitive_filtering_stage_2 
 SELECT TRANSFORM(customer_attr, target_attr, customer_item_id, target_item_id) 
 USING 'python udf_pair_filter3.py 1623' AS (customer_item_id, target_item_id, similarity)
 FROM competitive_filtering_stage_1;
+
+

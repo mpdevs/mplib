@@ -65,10 +65,14 @@ def train_hound():
 @time_elapse
 def cast_hound():
     h = Hound()
-    h.x_predict, h.y_predict = split_x_y(smart_decode(pickle_load("train_data"), cast=True))
+    data = smart_decode(pickle_load("train_data"), cast=True)[:10]
+    h.x_predict, h.y_predict = split_x_y(data)
     h.load_model()
     h.predict()
     h.print_info()
+    data = list(map(lambda x, y: x + y, [line[:4] for line in data], h.prediction.astype(unicode).tolist()))
+    for line in data:
+        print(len("\t".join(line)))
 
 
 @time_elapse
@@ -96,5 +100,5 @@ if __name__ == "__main__":
     # get_train_data_from_hive()
     # gold_miner_mold()
     # get_gold_from_hive()
-    train_hound()
+    # train_hound()
     cast_hound()
