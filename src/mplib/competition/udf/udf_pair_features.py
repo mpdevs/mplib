@@ -15,12 +15,11 @@ if __name__ == "__main__":
     try:
         data = [line for line in sys.stdin]
         data = list(map(lambda x: smart_decode(x).replace("\n", "").replace("\r", "").split("\t"), data))
-        tagging = GoldMiner()
         gm = GoldMiner()
         gm.category_id = sys.argv[1]
         gm.data = data
         gm.mold()
         gm.smelt()
 
-    except:
-        pass
+    except Exception as e:
+        print("\t".join(["ERROR"] * 3 + [traceback.format_exc()] + [unicode(e)]))
