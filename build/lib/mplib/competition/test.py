@@ -75,7 +75,7 @@ def train_hound():
 def build_distance_feature():
     import time
     gm = GoldMiner()
-    gm.data = pickle_load("cleaned_data")
+    gm.data = pickle_load("cleaned_data")[:20]
     print(len(gm.data))
     print(len(gm.data[0]))
     start = time.time()
