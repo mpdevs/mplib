@@ -15,12 +15,7 @@ def get_registered_shop():
     return PostgreSQL(env="v2_uat").query(sql)
 
 
-def etl():
-    shop_ids = get_registered_shop()
-
-    if not shop_ids:
-        return
-
+def update_tj(shop_id):
     sql = """
     USE elengjing_tj;
     DROP TABLE IF EXISTS t_shop_{id};
@@ -87,10 +82,15 @@ def etl():
     DROP TABLE IF EXISTS shop_{id};
     ALTER TABLE t_shop_{id} RENAME TO shop_{id};
     """
+    Hive(env="idc").execute(sql.format(**shop_id))
+
+
+def batch(shop_ids=None):
+    if not shop_ids:
+        shop_ids = get_registered_shop()
 
     for shop_id in shop_ids:
-        Hive(env="idc").execute(sql.format(**shop_id))
-
+        update_tj(shop_id)
 
 if __name__ == "__main__":
-    etl()
+    batch()
