@@ -9,6 +9,13 @@ import traceback
 
 
 def get_env(env="pro"):
+    if env == "v2_uat":
+        PG_UAT_CONNECTION.update(dict(dbname="elengjing"))
+        env = "uat"
+    elif env == "v2_pro":
+        PG_CONNECTION.update(dict(dbname="elengjing"))
+        env = "pro"
+
     env_dict = dict(
         pro=PG_CONNECTION,
         uat=PG_UAT_CONNECTION,
@@ -111,6 +118,7 @@ class MPPG(object):
 
 
 if __name__ == "__main__":
-    print(MPPG().query(
-        "SELECT '你好' AS method, 'test' AS name UNION ALL SELECT '你好' AS method, 'test' AS name;", fetchone=True))
-    print(MPPG(env="uat").query("select now();"))
+    # print(MPPG().query(
+    #     "SELECT '你好' AS method, 'test' AS name UNION ALL SELECT '你好' AS method, 'test' AS name;", fetchone=True))
+    # print(MPPG(env="uat").query("select now();"))
+    print(MPPG("v2_uat").env)
