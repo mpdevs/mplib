@@ -2,36 +2,42 @@
 # __author__: u"John"
 from __future__ import unicode_literals, absolute_import, print_function, division
 from mplib.common import time_elapse
-from mplib.IO import PostgreSQL, Hive
+from mplib.IO import Hive
 from datetime import datetime
 
 
-def get_registered_shop():
-    sql = """
-    SELECT DISTINCT s.id
-    FROM elengjing.public.user AS u
-    JOIN elengjing.public.shop AS s
-    ON u.shop_id = s.id
-    WHERE s.is_validated = 't'
-    """
-    return PostgreSQL(env="v2_uat").query(sql)
+CATEGORY_IDS = [
+    162104,
+    50008904,
+    50000697,
+    162201,
+    50008905,
+    50008897,
+    50013194,
+    50008898,
+    50010850,
+    50008899,
+    162116,
+    121412004,
+    50013196,
+    50008900,
+    50007068,
+    50011277,
+    162205,
+    50008901,
+    162103,
+    1623,
+    50000671
+]
 
-
-def get_shop_category(**kwargs):
-    sql = """
-    SELECT
-        DISTINCT categoryid
-    FROM elengjing.women_clothing_item
-    WHERE shopid = {shop_id}
-    """.format(**kwargs)
-    return list(map(lambda x: x[0], Hive("idc").query(sql, to_dict=False)))
+SHOP_ID = 73401272
 
 
 def create_table(**kwargs):
     sql = """
         USE elengjing_tj;
-        DROP TABLE IF EXISTS t_shop_{shop_id};
-        CREATE TABLE t_shop_{shop_id} (
+        DROP TABLE IF EXISTS t_shop_{shop_id}_case_{case};
+        CREATE TABLE t_shop_{shop_id}_case_{case} (
             category_id BIGINT,
             customer_shop_id BIGINT,
             customer_item_id BIGINT,
@@ -50,8 +56,8 @@ def create_table(**kwargs):
 def insert_by_category(**kwargs):
     sql = """
         USE elengjing_tj;
-        DROP TABLE IF EXISTS t_shop_{shop_id}_customer;
-        CREATE TABLE t_shop_{shop_id}_customer (
+        DROP TABLE IF EXISTS t_shop_{shop_id}_case_{case}_customer;
+        CREATE TABLE t_shop_{shop_id}_case_{case}_customer (
             shopid BIGINT,
             categoryid BIGINT,
             itemid BIGINT,
@@ -61,7 +67,7 @@ def insert_by_category(**kwargs):
         CLUSTERED BY (itemid) INTO 113 BUCKETS
         STORED AS ORC;
 
-        INSERT INTO TABLE t_shop_{shop_id}_customer
+        INSERT INTO TABLE t_shop_{shop_id}_case_{case}_customer
         SELECT
                 shopid,
                 categoryid,
@@ -81,8 +87,8 @@ def insert_by_category(**kwargs):
                 itemid,
                 platformid;
 
-        DROP TABLE IF EXISTS t_shop_{shop_id}_target;
-        CREATE TABLE t_shop_{shop_id}_target (
+        DROP TABLE IF EXISTS t_shop_{shop_id}_case_{case}_target;
+        CREATE TABLE t_shop_{shop_id}_case_{case}_target (
             shopid BIGINT,
             categoryid BIGINT,
             itemid BIGINT,
@@ -92,32 +98,7 @@ def insert_by_category(**kwargs):
         CLUSTERED BY (itemid) INTO 113 BUCKETS
         STORED AS ORC;
 
-        DROP TABLE IF EXISTS t_shop_{shop_id}_scope;
-        CREATE TABLE t_shop_{shop_id}_scope AS
-        SELECT
-            shopid AS shop_id,
-            rank,
-            CASE
-                WHEN rank <= 1000
-                THEN 1
-                ELSE 0
-            END AS is_top
-        FROM (
-            SELECT
-                shopid,
-                ROW_NUMBER() OVER(ORDER BY
-                    CASE
-                        WHEN NVL(SUM(salesqty), 0) = 0
-                        THEN 0
-                        ELSE 1.0 * NVL(SUM(salesamt), 0) / SUM(salesqty)
-                    END DESC
-                ) AS rank
-            FROM elengjing.women_clothing_item
-            GROUP BY
-                shopid
-        ) AS t;
-
-        INSERT INTO t_shop_{shop_id}_target
+        INSERT INTO t_shop_{shop_id}_case_{case}_target
         SELECT
                 shopid,
                 categoryid,
@@ -129,21 +110,7 @@ def insert_by_category(**kwargs):
                     ELSE 1.0 * NVL(SUM(salesamt), 0) / SUM(salesqty)
                 END AS avg_price
             FROM elengjing.women_clothing_item
-            WHERE shopid IN (
-                SELECT s.shop_id
-                FROM t_shop_{shop_id}_scope AS s
-                CROSS JOIN (
-                    SELECT
-                        CASE
-                            WHEN rank <= 1000
-                            THEN 1000
-                            ELSE rank + 500
-                        END AS rank
-                    FROM t_shop_{shop_id}_scope
-                    WHERE shop_id = {shop_id}
-                ) AS f
-                WHERE s.rank <= f.rank
-            )
+            WHERE shopid != {shop_id}
             AND categoryid = {category_id}
             GROUP BY
                 shopid,
@@ -151,7 +118,7 @@ def insert_by_category(**kwargs):
                 itemid,
                 platformid;
 
-        INSERT INTO elengjing_tj.t_shop_{shop_id}
+        INSERT INTO elengjing_tj.t_shop_{shop_id}_case_{case}
         SELECT
             c.categoryid AS category_id,
             c.shopid AS customer_shop_id,
@@ -160,8 +127,8 @@ def insert_by_category(**kwargs):
             t.shopid AS target_shop_id,
             t.itemid AS target_item_id,
             t.platformid AS target_platform_id
-        FROM t_shop_{shop_id}_customer AS c
-        CROSS JOIN t_shop_{shop_id}_target AS t
+        FROM t_shop_{shop_id}_case_{case}_customer AS c
+        CROSS JOIN t_shop_{shop_id}_case_{case}_target AS t
         WHERE t.avg_price BETWEEN 0.9 * c.avg_price AND 1.1 *c.avg_price;
         """.format(**kwargs)
     Hive("idc").execute(sql)
@@ -172,7 +139,7 @@ def transform(**kwargs):
     sql = """
         USE elengjing_tj;
         DROP TABLE IF EXISTS shop_{shop_id};
-        ALTER TABLE t_shop_{shop_id} RENAME TO shop_{shop_id};
+        ALTER TABLE t_shop_{shop_id}_case_{case} RENAME TO shop_{shop_id};
         DROP TABLE IF EXISTS shop_{shop_id}_item;
         CREATE TABLE shop_{shop_id}_item AS (
         SELECT
@@ -193,17 +160,17 @@ def transform(**kwargs):
             category_id,
             item_id
         );
-        DROP TABLE IF EXISTS t_shop_{shop_id}_target;
-        DROP TABLE IF EXISTS t_shop_{shop_id}_customer;
-        DROP TABLE IF EXISTS t_shop_{shop_id};
-        DROP TABLE IF EXISTS t_shop_{shop_id}_scope;
+        DROP TABLE IF EXISTS t_shop_{shop_id}_case_{case}_target;
+        DROP TABLE IF EXISTS t_shop_{shop_id}_case_{case}_customer;
+        DROP TABLE IF EXISTS t_shop_{shop_id}_case_{case};
+        DROP TABLE IF EXISTS t_shop_{shop_id}_case_{case}_scope;
         """.format(**kwargs)
     Hive("idc").execute(sql)
 
 
 @time_elapse
 def update_tj(**kwargs):
-    category_ids = get_shop_category(**kwargs)
+    category_ids = CATEGORY_IDS
     create_table(**kwargs)
 
     for index, category_id in enumerate(category_ids):
@@ -217,12 +184,11 @@ def update_tj(**kwargs):
 
 def batch(shop_ids=None):
     if not shop_ids:
-        shop_ids = get_registered_shop()
+        return
 
     for shop_id in shop_ids:
-        update_tj(shop_id=shop_id)
+        update_tj(shop_id=shop_id, case="a")
+
 
 if __name__ == "__main__":
-    # print(get_registered_shop())
-    # batch([60129786, 58501945])
-    print(get_shop_category(shop_id=73401272))
+    batch(shop_ids=[SHOP_ID])

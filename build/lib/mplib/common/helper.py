@@ -4,16 +4,15 @@
 This module contains debug / print tools
 """
 from __future__ import unicode_literals, absolute_import, print_function, division
-
+from mplib.common.unicode_tool import to_unicode
+from mplib.common.setting import DEBUG
+from mplib.IO import PostgreSQL
 from sklearn.externals import joblib
 from os.path import dirname, join
 from collections import OrderedDict
-from mplib.IO import PostgreSQL
 from datetime import datetime
 from six import iteritems
-
-from .unicode_tool import to_unicode
-from .setting import DEBUG
+from math import ceil
 
 import pickle
 import numpy
@@ -119,4 +118,4 @@ def normalize(data):
 
 
 if __name__ == "__main__":
-    print_line()
+    pass

@@ -289,6 +289,11 @@ def create_table_item_tagged():
     Hive(env=ENV).execute(sql)
 
 
+def batch(category_ids, full_process=False):
+    if not isinstance(category_ids, list):
+        category_ids = [category_ids]
+
+
 if __name__ == "__main__":
     # create_table_item_tagged()
     cid = 1623

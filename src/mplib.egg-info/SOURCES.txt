@@ -24,6 +24,7 @@ src/mplib/IO/file/binary/pickle_helper.py
 src/mplib/IO/file/hdfs/__init__.py
 src/mplib/Math/__init__.py
 src/mplib/Math/elementary_function.py
+src/mplib/Math/helper.py
 src/mplib/common/__init__.py
 src/mplib/common/base_class.py
 src/mplib/common/decorator.py
