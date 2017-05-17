@@ -11,6 +11,8 @@ src/mplib/IO/db/hive/__init__.py
 src/mplib/IO/db/hive/connector.py
 src/mplib/IO/db/impala/__init__.py
 src/mplib/IO/db/impala/connector.py
+src/mplib/IO/db/kylin/__init__.py
+src/mplib/IO/db/kylin/connector.py
 src/mplib/IO/db/mysql/__init__.py
 src/mplib/IO/db/mysql/connector.py
 src/mplib/IO/db/postgresql/__init__.py
@@ -54,6 +56,7 @@ src/mplib/dnr/udf/udf_denoise_ebusiness.py
 src/mplib/dnr/udf/udf_denoise_inquiry.py
 src/mplib/dnr/udf/udf_denoise_motherbaby.py
 src/mplib/dnr/udf/udf_denoise_weibo.py
+src/mplib/dnr/udf/udf_edit_distance.py
 src/mplib/plot/__init__.py
 src/mplib/plot/api.py
 src/mplib/pricing/__init__.py

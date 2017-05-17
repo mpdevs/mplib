@@ -84,6 +84,14 @@ IMPALA_CONNECTION = dict(
 )
 
 
+KYLIN_CONNECTION = dict(
+    username='ADMIN',
+    password='KYLIN',
+    endpoint='http://172.16.1.14:7070/kylin/api',
+    project='elengjing',
+)
+
+
 DEBUG = True
 INFO = True
 WARNING = True
