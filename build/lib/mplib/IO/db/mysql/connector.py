@@ -6,13 +6,16 @@ from mplib.common import smart_decode
 import MySQLdb
 
 
-def get_env(env="das_pro"):
-    env_dict = dict(
+def get_env(env):
+    return get_env_dict().get(env, DAS_PRO_MYSQL_CONNECTION)
+
+
+def get_env_dict():
+    return dict(
         das_pro=DAS_PRO_MYSQL_CONNECTION,
         lj_test=LJ_TEST_MYSQL_CONNECTION,
         mpportal=MYSQL_SETTINGS,
     )
-    return env_dict.get(env, DAS_PRO_MYSQL_CONNECTION)
 
 
 def db_connect(env="das_pro"):
@@ -80,8 +83,18 @@ class MPMySQL(object):
     def get_connect(self):
         return db_connect(env=self.env)
 
+    @staticmethod
+    def get_env_dict():
+        return get_env_dict()
+
+    @staticmethod
+    def show_env_dict():
+        from pprint import pprint
+        pprint(get_env_dict())
+
 
 if __name__ == "__main__":
     print(MPMySQL().query("SELECT now() AS time;", fetchone=True))
     print(MPMySQL().query("SELECT now() AS time;"))
     print(MPMySQL(env="lj_test").query("select now() AS time;"))
+    MPMySQL.show_env_dict()

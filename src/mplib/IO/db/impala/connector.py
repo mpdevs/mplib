@@ -1,15 +1,24 @@
 # coding: utf-8
 # __author__: u"John"
 from __future__ import unicode_literals, absolute_import, print_function, division
-
 from mplib.common.setting import IMPALA_CONNECTION
 from mplib.common import smart_decode, smart_encode
 from impala import dbapi
 
 
+def get_env(env):
+    return get_env_dict().get(env, IMPALA_CONNECTION)
+
+
+def get_env_dict():
+    return dict(
+        local=IMPALA_CONNECTION
+    )
+
+
 class Impala(object):
-    def __init__(self):
-        self.conn = dbapi.connect(**IMPALA_CONNECTION)
+    def __init__(self, env="local"):
+        self.conn = dbapi.connect(**get_env(env))
 
     def query(self, sql):
         with self.conn.cursor() as cursor:
@@ -28,7 +37,17 @@ class Impala(object):
             self.conn.close()
             return True
 
+    @staticmethod
+    def get_env_dict():
+        return get_env_dict()
+
+    @staticmethod
+    def show_env_dict():
+        from pprint import pprint
+        pprint(get_env_dict())
+
 
 if __name__ == "__main__":
-    print(Impala().query("SHOW TABLES;"))
-    print(Impala().execute("SHOW TABLES;"))
+    # print(Impala().query("SHOW TABLES;"))
+    # print(Impala().execute("SHOW TABLES;"))
+    print(Impala.get_env_dict())

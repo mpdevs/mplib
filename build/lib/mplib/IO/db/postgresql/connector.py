@@ -8,19 +8,26 @@ import psycopg2.pool
 import traceback
 
 
-def get_env(env="pro"):
-    if env == "v2_uat":
-        PG_UAT_CONNECTION.update(dict(dbname="elengjing"))
-        env = "uat"
-    elif env == "v2_pro":
-        PG_CONNECTION.update(dict(dbname="elengjing"))
-        env = "pro"
+def get_env(env):
+    switch_db = False
 
-    env_dict = dict(
+    if env in ["v2_uat", "v2_pro"]:
+        env = env.split("_")[1]
+        switch_db = True
+
+    env = get_env_dict().get(env, PG_CONNECTION)
+
+    if switch_db:
+        env.update(dict(dbname="elengjing"))
+
+    return env
+
+
+def get_env_dict():
+    return dict(
         pro=PG_CONNECTION,
         uat=PG_UAT_CONNECTION,
     )
-    return env_dict.get(env, PG_CONNECTION)
 
 
 class MPPG(object):
@@ -116,9 +123,19 @@ class MPPG(object):
                 self.pool.putconn(self.conn, close=True)
                 self.in_transaction = False
 
+    @staticmethod
+    def get_env_dict():
+        return get_env_dict()
+
+    @staticmethod
+    def show_env_dict():
+        from pprint import pprint
+        pprint(get_env_dict())
+
 
 if __name__ == "__main__":
     # print(MPPG().query(
     #     "SELECT '你好' AS method, 'test' AS name UNION ALL SELECT '你好' AS method, 'test' AS name;", fetchone=True))
     # print(MPPG(env="uat").query("select now();"))
     print(MPPG("v2_uat").env)
+    MPPG.show_env_dict()

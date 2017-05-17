@@ -7,11 +7,14 @@ import pyhs2
 
 
 def get_env(env="local"):
-    env_dict = dict(
+    return get_env_dict().get(env, HIVE_CONNECTION)
+
+
+def get_env_dict():
+    return dict(
         local=HIVE_CONNECTION,
         idc=IDC_HIVE_CONNECTION,
     )
-    return env_dict.get(env, HIVE_CONNECTION)
 
 
 class Hive:
@@ -73,9 +76,19 @@ class Hive:
         self.cursor.close()
         self.conn.close()
 
+    @staticmethod
+    def get_env_dict():
+        return get_env_dict()
+
+    @staticmethod
+    def show_env_dict():
+        from pprint import pprint
+        pprint(get_env_dict())
+
 
 if __name__ == "__main__":
     from pprint import pprint
     Hive(env="idc").execute("CREATE TABLE alahubake(id string); DROP TABLE alahubake;")
     pprint(Hive(env="idc").query("SHOW TABLES"))
     pprint(Hive(env="idc").query("SELECT dateid, date FROM dimdate LIMIT 1", to_dict=False))
+    Hive.show_env_dict()
