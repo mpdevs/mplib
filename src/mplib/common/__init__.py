@@ -3,7 +3,7 @@
 from __future__ import unicode_literals, absolute_import, print_function, division
 
 # region class import
-from .base_class import AttributeDict
+from .base_class import AttributeDict as dict, DateTime as datetime
 # endregion
 
 # region function import

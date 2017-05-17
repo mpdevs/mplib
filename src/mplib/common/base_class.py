@@ -1,9 +1,9 @@
 # coding: utf-8
 # __author__: u"John"
 from __future__ import unicode_literals, absolute_import, print_function, division
+from datetime import datetime
 
 
-# region 属性访问定义——字典后接'.' + key名，即可得到字典中key对应的内容
 class AttributeDict(dict):
     """
     能够把dict的key当作class的attribute
@@ -13,4 +13,17 @@ class AttributeDict(dict):
 
     def __setattr__(self, attr, value):
         self[attr] = value
-# endregion
+
+
+class DateTime(datetime):
+    def __init__(self, *args, **kwargs):
+        datetime.__init__(*args, **kwargs)
+        self.quarter = (self.month - 1) // 3 + 1
+
+
+if __name__ == "__main__":
+    ad = AttributeDict()
+    ad["a"] = "value of key: a"
+    print(ad.a)
+    for i in list(range(1, 13)):
+        print(DateTime(2017, i, 1).quarter)
