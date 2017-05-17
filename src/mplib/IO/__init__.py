@@ -29,4 +29,9 @@ try:
 except ImportError:
     pass
 
+try:
+    from mplib.IO.db.kylin.connector import Kylin
+except ImportError:
+    pass
+
 from mplib.IO.file.binary.pickle_helper import pickle_load, pickle_dump
