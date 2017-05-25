@@ -94,6 +94,35 @@ def tag_to_tree(tags=list(), sep="."):
         attach(tag, tree, sep=sep)
     return tree
 
+
+def flat_to_tree(data, name="id", p_name="pid", c_name="children"):
+    """
+    通过id和pid构造树型结构
+    """
+    # 创建节点字典
+    nodes = {}
+    for line in data:
+        id = line[name]
+        nodes[id] = dict(children=[], **line)
+
+    # 构造节点之间的关系
+    forest = []
+    for line in data:
+        id, parent_id = (line[name], line[p_name])
+        node = nodes[id]
+
+        # 如果pid＝0，则创建新的树，否则在树上增加新的节点
+        if parent_id == 0:
+            # 开始一棵新的树
+            forest.append(node)
+        else:
+            # 通过pid来添加新的节点
+            parent = nodes[parent_id]
+            children = parent[c_name]
+            children.append(node)
+    return forest
+
+
 if __name__ == "__main__":
     t = tag_to_tree(["品牌.奶粉.惠氏", "品牌.达能.奶粉", "属性.颜色.白色"])
     import json
