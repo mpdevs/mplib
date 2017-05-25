@@ -57,6 +57,10 @@ def g_alphabet(index, lowercase=False):
     return
 
 
+def g_string(s):
+    return ("{0}\n".format(line) for idx, line in enumerate(s.split("\n")) if idx < len(s.split("\n")) - 1)
+
+
 if __name__ == "__main__":
     from mplib.common.helper import print_line
     print_line(center_word="g_fib")
