@@ -29,6 +29,14 @@ LJ_TEST_MYSQL_CONNECTION = dict(
     passwd="123",
 )
 
+LOCAL_HIVE_MYSQL_CONNECTION = dict(
+    host="172.16.1.11",
+    port=3306,
+    db="hive",
+    user="cdh",
+    passwd="123",
+)
+
 
 HIVE_CONNECTION = dict(
     database="das",
