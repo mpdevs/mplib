@@ -7,14 +7,8 @@ import editdistance
 
 
 def get_data():
-    sql = """
-    SELECT
-        d.id,
-        d.content
-    FROM das.ci_diaper2014to2016_0406_allplatform_distinct AS d
-    WHERE d.year = '2016'
-    """
-    data = Hive(env="local").query(sql, to_dict=False)
+    sql = "SELECT COUNT(*) AS cnt FROM das.ci_diaper2014to2016_0406_allplatform_distinct AS d WHERE d.year = '2016'"
+    data = Hive(env="local").query(sql)
     pickle_dump("raw", data)
 
 
@@ -27,4 +21,5 @@ def transform():
 
 
 if __name__ == "__main__":
-    get_data()
+    Hive.show_env_dict()
+    print(Hive().query("show tables"))
