@@ -8,9 +8,9 @@ from mplib.common.helper import print_var_info, save_model_to_pickle, load_model
 from mplib.common.helper import save_model_to_pg, load_model_from_pg, exists_model_in_pg
 from sklearn.ensemble import VotingClassifier
 from sklearn.metrics import accuracy_score
-from six import iteritems, itervalues, next
 from functools import partial
 from datetime import datetime
+from mplib import *
 import time
 
 

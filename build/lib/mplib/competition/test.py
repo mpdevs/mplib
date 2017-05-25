@@ -5,6 +5,7 @@ from mplib.competition import GoldMiner, Hound
 from mplib.competition.helper import split_x_y
 from mplib.IO import Hive, pickle_dump, pickle_load
 from mplib.common import smart_decode, time_elapse
+from mplib import *
 import time
 
 

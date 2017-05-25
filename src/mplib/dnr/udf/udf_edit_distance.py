@@ -2,6 +2,7 @@
 # __author__: u"John"
 from __future__ import unicode_literals, absolute_import, print_function, division
 from mplib.common import smart_decode
+from mplib import *
 import editdistance
 import traceback
 import sys

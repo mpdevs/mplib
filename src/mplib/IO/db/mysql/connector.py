@@ -4,6 +4,7 @@ from __future__ import unicode_literals, absolute_import, print_function, divisi
 from mplib.common.setting import MYSQL_SETTINGS, DAS_PRO_MYSQL_CONNECTION, LJ_TEST_MYSQL_CONNECTION
 from mplib.common.setting import LOCAL_HIVE_MYSQL_CONNECTION
 from mplib.common import smart_decode
+from mplib import *
 import MySQLdb
 
 

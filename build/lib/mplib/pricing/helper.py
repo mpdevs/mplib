@@ -6,7 +6,7 @@ from mplib.common import smart_encode
 from os.path import dirname, join, splitext
 from os import listdir
 from sklearn import model_selection
-from six import iteritems
+from mplib import *
 import pandas
 import numpy
 

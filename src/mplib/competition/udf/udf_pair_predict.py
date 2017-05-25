@@ -4,6 +4,7 @@ from __future__ import unicode_literals, absolute_import, print_function, divisi
 from mplib.competition.helper import split_x_y
 from mplib.competition import Hound
 from mplib.common import smart_decode
+from mplib import *
 import traceback
 import sys
 

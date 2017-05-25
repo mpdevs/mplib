@@ -10,7 +10,7 @@ from sklearn.svm import SVC
 from scipy.spatial.distance import cosine, cityblock, euclidean, chebyshev, canberra, braycurtis
 from mplib.common import smart_encode
 from collections import OrderedDict
-from six import iteritems, itervalues, next
+from mplib import *
 import pandas
 import numpy
 import re

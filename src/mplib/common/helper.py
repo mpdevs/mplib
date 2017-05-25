@@ -10,7 +10,8 @@ from mplib.IO import PostgreSQL
 from os.path import dirname, join
 from collections import OrderedDict
 from datetime import datetime
-from six import iteritems
+from pprint import pprint
+from mplib import *
 
 import pickle
 import numpy
@@ -45,7 +46,6 @@ def print_line(placeholder="-", repeat=50, center_word=""):
 
 
 def print_var_str(var_name_str, ptype="print", caller_locals=locals()):
-    from pprint import pprint
     var_val = {var_name_str: caller_locals.get(var_name_str)}
     if ptype == "print":
         print(var_val)

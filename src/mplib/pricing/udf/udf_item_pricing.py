@@ -4,6 +4,7 @@ from __future__ import unicode_literals, absolute_import, print_function, divisi
 from mplib.pricing.helper import split_id_feature, split_x_y
 from mplib.pricing import SKAssess
 from mplib.common import smart_decode
+from mplib import *
 import traceback
 import sys
 
