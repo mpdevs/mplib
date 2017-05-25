@@ -15,8 +15,8 @@ try:
     for line in sys.stdin:
         # content1, content2, id1, id2
         line = smart_decode(line).replace("\n", "").replace("\r", "").replace("\\N", "").split("\t")
-        distance = editdistance.eval(line[0], line[1])
-        print("\t".join([line[2:] + [distance]]))
+        distance = str(editdistance.eval(line[0], line[1]))
+        print("\t".join(line[2:] + [distance]))
 
 except Exception as e:
     print("\t".join([str(e), '', '', '', traceback.format_exc()]))

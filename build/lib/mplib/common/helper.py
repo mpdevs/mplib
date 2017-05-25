@@ -4,15 +4,13 @@
 This module contains debug / print tools
 """
 from __future__ import unicode_literals, absolute_import, print_function, division
-from mplib.common.unicode_tool import to_unicode
+from mplib.common.unicode_tool import to_unicode, smart_decode
 from mplib.common.setting import DEBUG
 from mplib.IO import PostgreSQL
-from sklearn.externals import joblib
 from os.path import dirname, join
 from collections import OrderedDict
 from datetime import datetime
 from six import iteritems
-from math import ceil
 
 import pickle
 import numpy
@@ -46,6 +44,24 @@ def print_line(placeholder="-", repeat=50, center_word=""):
     print("{0}{1}{0}".format(to_unicode(placeholder) * repeat, center_word))
 
 
+def print_var_str(var_name_str, ptype="print", caller_locals=locals()):
+    from pprint import pprint
+    var_val = {var_name_str: caller_locals.get(var_name_str)}
+    if ptype == "print":
+        print(var_val)
+    elif ptype == "pprint":
+        pprint(var_val)
+
+
+def print_var(var_name, ptype="print", caller_locals=locals()):
+    """
+    https://stackoverflow.com/questions/2553354/how-to-get-a-variable-name-as-a-string-in-python
+    """
+    names = [k for k, v in iteritems(caller_locals) if v is var_name]
+    for name in names:
+        print_var_str(name, ptype, caller_locals)
+
+
 def get_print_var(var_dict, var_list):
     od = OrderedDict()
 
@@ -69,6 +85,7 @@ def d(string):
 
 
 def save_model_to_pickle(model_obj, model_name, path=None):
+    from sklearn.externals import joblib
     path = path if path else __file__
     joblib.dump(model_obj, "{0}.pkl".format(join(dirname(path), join("models", model_name))))
 
@@ -84,6 +101,7 @@ def save_model_to_pg(model_obj, model_name):
 
 
 def load_model_from_pickle(model_name, path=None):
+    from sklearn.externals import joblib
     path = path if path else __file__
     return joblib.load("{0}.pkl".format(join(dirname(path), join("models", model_name))))
 
@@ -117,5 +135,11 @@ def normalize(data):
     return data
 
 
+def remove_crlf(string):
+    return smart_decode(string).replace("\n", "").replace("\r", "")
+
+
 if __name__ == "__main__":
-    pass
+    print_var_str("normalize")
+    print_var(normalize)
+

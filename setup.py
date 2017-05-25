@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="mplib",
-    version="0.5.7",
+    version="0.5.8",
     packages=find_packages("src"),
     package_dir={"": "src"},
     include_package_data=True,

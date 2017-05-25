@@ -2,6 +2,7 @@
 # __author__: u"John"
 from __future__ import unicode_literals, absolute_import, print_function, division
 from mplib.common.setting import MYSQL_SETTINGS, DAS_PRO_MYSQL_CONNECTION, LJ_TEST_MYSQL_CONNECTION
+from mplib.common.setting import LOCAL_HIVE_MYSQL_CONNECTION
 from mplib.common import smart_decode
 import MySQLdb
 
@@ -15,6 +16,7 @@ def get_env_dict():
         das_pro=DAS_PRO_MYSQL_CONNECTION,
         lj_test=LJ_TEST_MYSQL_CONNECTION,
         mpportal=MYSQL_SETTINGS,
+        local_hive=LOCAL_HIVE_MYSQL_CONNECTION,
     )
 
 
