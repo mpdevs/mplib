@@ -67,6 +67,7 @@ def insert_by_category(**kwargs):
         CLUSTERED BY (itemid) INTO 113 BUCKETS
         STORED AS ORC;
 
+
         INSERT INTO TABLE t_shop_{shop_id}_case_{case}_customer
         SELECT
                 shopid,
@@ -87,6 +88,7 @@ def insert_by_category(**kwargs):
                 itemid,
                 platformid;
 
+
         DROP TABLE IF EXISTS t_shop_{shop_id}_case_{case}_target;
         CREATE TABLE t_shop_{shop_id}_case_{case}_target (
             shopid BIGINT,
@@ -98,25 +100,53 @@ def insert_by_category(**kwargs):
         CLUSTERED BY (itemid) INTO 113 BUCKETS
         STORED AS ORC;
 
-        INSERT INTO t_shop_{shop_id}_case_{case}_target
+        INSERT INTO TABLE t_shop_{shop_id}_case_{case}_target
         SELECT
-                shopid,
-                categoryid,
-                itemid,
-                platformid,
-                CASE
-                    WHEN NVL(SUM(salesqty), 0) = 0
-                    THEN 0
-                    ELSE 1.0 * NVL(SUM(salesamt), 0) / SUM(salesqty)
-                END AS avg_price
-            FROM elengjing.women_clothing_item
-            WHERE shopid != {shop_id}
-            AND categoryid = {category_id}
-            GROUP BY
-                shopid,
-                categoryid,
-                itemid,
-                platformid;
+            b.shopid,
+            b.categoryid,
+            b.itemid,
+            b.platformid,
+            b.avg_price
+        FROM (
+            SELECT
+                a.shopid,
+                a.categoryid,
+                a.itemid,
+                a.platformid,
+                a.avg_price,
+                1.0 * SUM(a.qty) OVER (ORDER BY a.qty DESC, a.qty ROWS UNBOUNDED PRECEDING) / t.qty AS c_ratio
+            FROM (
+                SELECT
+                    shopid,
+                    categoryid,
+                    itemid,
+                    platformid,
+                    CASE
+                        WHEN NVL(SUM(salesqty), 0) = 0
+                        THEN 0
+                        ELSE 1.0 * NVL(SUM(salesamt), 0) / SUM(salesqty)
+                    END AS avg_price,
+                    SUM(salesqty) AS qty
+                FROM elengjing.women_clothing_item
+                WHERE shopid != {shop_id}
+                AND categoryid = {category_id}
+                GROUP BY
+                    shopid,
+                    categoryid,
+                    itemid,
+                    platformid
+                ORDER BY qty DESC
+            ) AS a
+            CROSS JOIN (
+                SELECT
+                    SUM(salesqty) AS qty
+                FROM elengjing.women_clothing_item
+                WHERE shopid != {shop_id}
+                AND categoryid = {category_id}
+            ) AS t
+        ) AS b
+        WHERE b.c_ratio <= 0.8;
+
 
         INSERT INTO elengjing_tj.t_shop_{shop_id}_case_{case}
         SELECT
@@ -129,7 +159,7 @@ def insert_by_category(**kwargs):
             t.platformid AS target_platform_id
         FROM t_shop_{shop_id}_case_{case}_customer AS c
         CROSS JOIN t_shop_{shop_id}_case_{case}_target AS t
-        WHERE t.avg_price BETWEEN 0.9 * c.avg_price AND 1.1 *c.avg_price;
+        WHERE t.avg_price BETWEEN 0.9 * c.avg_price AND 1.1 * c.avg_price;
         """.format(**kwargs)
     Hive("idc").execute(sql)
 
@@ -187,7 +217,7 @@ def batch(shop_ids=None):
         return
 
     for shop_id in shop_ids:
-        update_tj(shop_id=shop_id, case="a")
+        update_tj(shop_id=shop_id, case="b")
 
 
 if __name__ == "__main__":

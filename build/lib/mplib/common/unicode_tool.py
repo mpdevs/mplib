@@ -3,7 +3,10 @@
 from __future__ import unicode_literals, absolute_import, print_function, division
 from mplib import *
 import numbers
-import chardet
+try:
+    import chardet
+except ImportError:
+    chardet = None
 
 
 def smart_decode(obj, cast=False):
@@ -35,7 +38,10 @@ def smart_decode(obj, cast=False):
         except UnicodeDecodeError:
             pass
         try:
-            return obj.decode(chardet.detect(obj).get("encoding"))
+            if chardet:
+                return obj.decode(chardet.detect(obj).get("encoding"))
+            else:
+                return obj
         except UnicodeDecodeError:
             return obj
     elif isinstance(obj, list):
