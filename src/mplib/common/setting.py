@@ -41,8 +41,8 @@ LOCAL_HIVE_MYSQL_CONNECTION = dict(
 HIVE_CONNECTION = dict(
     database="das",
     host="172.16.1.12",
-    user="big boss",
-    password="it's secret",
+    user="mplib",
+    password="mplib",
     port=10000,
     authMechanism="PLAIN"
 )
@@ -51,8 +51,8 @@ HIVE_CONNECTION = dict(
 IDC_HIVE_CONNECTION = dict(
     database="elengjing",
     host="192.168.110.122",
-    user="hive",
-    password="hive1",
+    user="mplib",
+    password="mplib",
     port=10000,
     authMechanism="PLAIN"
 )
@@ -93,12 +93,19 @@ IMPALA_CONNECTION = dict(
 
 
 KYLIN_CONNECTION = dict(
-    username='ADMIN',
-    password='KYLIN',
-    endpoint='http://172.16.1.14:7070/kylin/api',
-    project='elengjing',
+    username="ADMIN",
+    password="KYLIN",
+    endpoint="http://172.16.1.14:7070/kylin/api",
+    project="elengjing",
 )
 
+
+IDC_KYLIN_CONNECTION = dict(
+    username="ADMIN",
+    password="KYLIN",
+    endpoint="http://192.168.110.124:7070/kylin/api",
+    project="elengjing",
+)
 
 DEBUG = True
 INFO = True

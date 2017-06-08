@@ -63,4 +63,4 @@ def rebuild_table(table_name):
 
 
 if __name__ == "__main__":
-    rebuild_table("journey_yunyuqi_all")
+    rebuild_table("daneng_20170531_2002to2004_withinfo")

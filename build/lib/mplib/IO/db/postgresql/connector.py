@@ -8,25 +8,23 @@ import psycopg2.pool
 import traceback
 
 
+def switch_db(setting, target_db):
+    from copy import deepcopy
+    new_setting = deepcopy(setting)
+    new_setting.update(dict(dbname=target_db))
+    return new_setting
+
+
 def get_env(env):
-    switch_db = False
-
-    if env in ["v2_uat", "v2_pro"]:
-        env = env.split("_")[1]
-        switch_db = True
-
-    env = get_env_dict().get(env, PG_CONNECTION)
-
-    if switch_db:
-        env.update(dict(dbname="elengjing"))
-
-    return env
+    return get_env_dict().get(env, PG_CONNECTION)
 
 
 def get_env_dict():
     return dict(
         pro=PG_CONNECTION,
         uat=PG_UAT_CONNECTION,
+        v2_uat=switch_db(PG_UAT_CONNECTION, "elengjing"),
+        v2_pro=switch_db(PG_CONNECTION, "elengjing"),
     )
 
 

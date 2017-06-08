@@ -1,7 +1,7 @@
 # coding: utf-8
 # __author__: u"John"
 from __future__ import unicode_literals, absolute_import, print_function, division
-from mplib.common.setting import KYLIN_CONNECTION
+from mplib.common.setting import KYLIN_CONNECTION, IDC_KYLIN_CONNECTION
 import pykylin
 
 
@@ -11,11 +11,12 @@ def get_env(env):
 
 def get_env_dict():
     return dict(
-        local=KYLIN_CONNECTION
+        local=KYLIN_CONNECTION,
+        idc=IDC_KYLIN_CONNECTION,
     )
 
 
-class Kylin:
+class Kylin(object):
     def __init__(self, env="local"):
         self.conn = pykylin.connect(**get_env(env))
 
@@ -54,20 +55,16 @@ class Kylin:
 if __name__ == "__main__":
     from pprint import pprint
     test_sql = """
-    WITH a AS (
-        SELECT
-            c.categoryid,
-            c.categoryname,
-            COUNT(DISTINCT itemid) AS spu
-        FROM women_clothing_item AS i
-        JOIN category AS c
-        ON i.categoryid = c.categoryid
-        GROUP BY
-            c.categoryid,
-            c.categoryname
-    )
-    SELECT * FROM a
-    """
-    pprint(Kylin().query(test_sql))
+    SELECT
+        i.shopid,
+        COUNT(DISTINCT i.itemid) AS kpi
+    FROM elengjing.women_clothing_item AS i
 
-    pprint(Kylin.get_env_dict())
+    WHERE i.daterange BETWEEN '2016-12-11' AND '2016-12-17'
+    AND i.platformid = '7011'
+
+    GROUP BY
+        i.shopid
+    """
+    pprint(Kylin("idc").query(test_sql))
+    # pprint(Kylin.get_env_dict())
