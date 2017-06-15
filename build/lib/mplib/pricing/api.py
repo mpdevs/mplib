@@ -43,7 +43,7 @@ def hive_data_train(category_id, is_event=False, show_log=False):
     from copy import deepcopy
     a = SKAssess()
     a.category_id, a.interval = category_id, "event" if is_event else "daily"
-    a.x_train, a.y_train = get_hive_train_data(category_id)
+    a.x_train, a.y_train = get_hive_train_data(category_id, is_event)
     a.x_predict, a.y_predict = deepcopy(a.x_train), deepcopy(a.y_train)
     a.train()
     a.save_model()
