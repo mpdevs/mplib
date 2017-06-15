@@ -175,12 +175,12 @@ def execute_hive_predict_data(category_id, is_event=False):
         USE elengjing_price;
         ADD FILE /home/script/normal_servers/serverudf/elengjing/udf_item_pricing12.py;
 
-        DROP TABLE IF EXISTS predict_162103_daily;
-        CREATE TABLE predict_162103_daily (
+        DROP TABLE IF EXISTS predict_{category_id}_daily;
+        CREATE TABLE predict_{category_id}_daily (
             itemid STRING,
             price DECIMAL(20,2)
         ) STORED AS ORC;
-        INSERT INTO predict_162103_daily
+        INSERT INTO predict_{category_id}_daily
         SELECT TRANSFORM(itemid, data)
         USING 'python udf_item_pricing12.py {category_id} daily' AS (itemid, price)
         FROM (

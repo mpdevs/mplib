@@ -250,7 +250,7 @@ if __name__ == "__main__":
         tagging=False,
         feature=True,
         keep_tmp=False,
-        is_event=False,
-        date_filter="WHERE daterange BETWEEN '2016-05-01' AND '2016-05-24'"
+        is_event=True,
+        date_filter="WHERE daterange BETWEEN '2016-05-25' AND '2016-05-31'"
     )
     batch(**batch_dict)
