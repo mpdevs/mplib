@@ -1,7 +1,7 @@
 # coding: utf8
 # __author__: "John"
 from __future__ import unicode_literals, absolute_import, print_function, division
-from mplib.common.helper import get_print_var
+from mplib.common.helper import get_print_var, vector_reshape_to_matrix as vrm
 from mplib.common import smart_encode
 from os.path import dirname, join, splitext
 from os import listdir
@@ -149,6 +149,106 @@ def drop_zero_columns(array):
 
 def y_approximation(vector):
     return 10 * numpy.ceil(vector / 10)
+
+
+def get_hive_train_data(category_id, is_event=False):
+    from mplib.IO import Hive
+    sql = "SELECT data AS data FROM elengjing_price.train_{category_id}_{model_type}".format(
+        category_id=category_id,
+        model_type="event" if is_event else "daily",
+    )
+    lines = [line.get("data") for line in Hive("idc").query(sql)]
+    train_x = []
+    train_y = []
+    for line in lines:
+        line = [float(num) for num in line.split(",")]
+        train_x.append(line[1:])
+        train_y.append(line[0])
+    return numpy.nan_to_num(numpy.array(train_x)), vrm(numpy.nan_to_num(numpy.array(train_y)))
+
+
+def execute_hive_predict_data(category_id, is_event=False):
+    from mplib.IO import Hive
+    sql = """
+        USE elengjing_price;
+        ADD FILE /home/script/normal_servers/serverudf/elengjing/udf_item_pricing12.py;
+
+        DROP TABLE IF EXISTS predict_162103_daily;
+        CREATE TABLE predict_162103_daily (
+            itemid STRING,
+            price DECIMAL(20,2)
+        ) STORED AS ORC;
+        INSERT INTO predict_162103_daily
+        SELECT TRANSFORM(itemid, data)
+        USING 'python udf_item_pricing12.py {category_id} daily' AS (itemid, price)
+        FROM (
+            SELECT
+                i.itemid,
+                CONCAT_WS(
+                    ',',
+                    CAST(i.avg_price AS STRING),
+                    CAST((UNIX_TIMESTAMP() - TO_UNIX_TIMESTAMP(i.listeddate)) / 86400.0 AS STRING),
+                    CAST(shop.level AS STRING),
+                    CAST(shop.favor AS STRING),
+                    CAST(s.all_spu AS STRING),
+                    CAST(s.all_sales_rank AS STRING),
+                    CAST(sc.category_spu AS STRING),
+                    CAST(sc.category_sales_rank AS STRING),
+                    CAST(s.shop_avg_price AS STRING),
+                    CAST(s.shop_avg_price_rank AS STRING),
+                    CAST(sc.category_avg_price AS STRING),
+                    CAST(sc.category_avg_price_rank AS STRING),
+                    v.data
+                ) AS data
+            FROM (
+                SELECT
+                    shopid, itemid,
+                    MAX(listeddate) AS listeddate,
+                    CASE WHEN SUM(salesqty) = 0 THEN 0 ELSE SUM(salesamt) / SUM(salesqty) END AS avg_price
+                FROM elengjing.women_clothing_item
+                WHERE categoryid = {category_id}
+                GROUP BY
+                    shopid, itemid
+            ) AS i
+            JOIN (
+                SELECT
+                    shopid,
+                    COUNT(DISTINCT itemid) AS all_spu,
+                    CASE WHEN SUM(salesqty) = 0 THEN 0 ELSE SUM(salesamt) / SUM(salesqty) END AS shop_avg_price,
+                    ROW_NUMBER() OVER(ORDER BY SUM(salesamt) DESC) AS all_sales_rank,
+                    ROW_NUMBER() OVER(ORDER BY CASE WHEN SUM(salesqty) = 0 THEN 0 ELSE SUM(salesamt) / SUM(salesqty) END DESC) AS shop_avg_price_rank
+                FROM elengjing.women_clothing_item
+                GROUP BY
+                    shopid
+            ) AS s
+            ON i.shopid = s.shopid
+            JOIN (
+                SELECT
+                    shopid,
+                    COUNT(DISTINCT itemid) AS category_spu,
+                    ROW_NUMBER() OVER(ORDER BY SUM(salesamt) DESC) AS category_sales_rank,
+                    ROW_NUMBER() OVER(ORDER BY CASE WHEN SUM(salesqty) = 0 THEN 0 ELSE SUM(salesamt) / SUM(salesqty) END DESC) AS category_avg_price_rank,
+                    CASE WHEN SUM(salesqty) = 0 THEN 0 ELSE SUM(salesamt) / SUM(salesqty) END AS category_avg_price
+                FROM elengjing.women_clothing_item
+                WHERE categoryid = {category_id}
+                GROUP BY
+                    shopid
+                ) AS sc
+            ON i.shopid = sc.shopid
+            JOIN elengjing_base.shop AS shop
+            ON i.shopid = shop.shopid
+            JOIN elengjing_price.attr_itemid_value_matrix_{category_id} AS v
+            ON i.itemid = v.itemid
+        ) AS tmp;
+        """.format(category_id=category_id, model_type="event" if is_event else "daily")
+    Hive("idc").execute(sql)
+
+
+def get_all_category(industry_id=16):
+    from mplib.IO import PostgreSQL
+    sql = "SELECT id FROM category WHERE industry_id = {0} AND is_leaf = 't'".format(industry_id)
+    lines = PostgreSQL("v2_uat").query(sql)
+    return [str(line.get("id")) for line in lines]
 
 
 if __name__ == "__main__":

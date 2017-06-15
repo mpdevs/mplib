@@ -4,6 +4,7 @@ from __future__ import unicode_literals, absolute_import, print_function, divisi
 from mplib.pricing.helper import split_id_feature, split_x_y
 from mplib.pricing import SKAssess
 from mplib.common import smart_decode
+from mplib.IO import Hive
 from mplib import *
 import traceback
 import sys
@@ -14,13 +15,16 @@ if __name__ == "__main__":
     sys.setdefaultencoding("utf8")
 
     try:
-        data = [line for line in sys.stdin]
+        sql = "SELECT itemid AS itemid, data AS data FROM elengjing_price.category_162103_daily LIMIT 10"
+        data = Hive("idc").query(sql)
+        data = ["\t".join([str(line.get("itemid")), str(line.get("data"))]) for line in data]
         data = list(map(lambda x: smart_decode(x).replace("\n", "").replace("\r", "").split("\t"), data))
         items, data = split_id_feature(data)
         a = SKAssess()
         a.category_id = sys.argv[1]
         a.interval = smart_decode(sys.argv[2])
         a.x_predict, a.y_predict = split_x_y(data)
+        print(str(a.x_predict.shape))
         a.load_model()
         a.predict()
         data = zip(items, a.prediction.astype(str).tolist())

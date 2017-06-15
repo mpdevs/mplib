@@ -100,6 +100,15 @@ def save_model_to_pg(model_obj, model_name):
     PostgreSQL().execute(sql, (pickle.dumps(model_obj),))
 
 
+def update_model_to_pg(model_obj, model_name):
+    sql = """
+    UPDATE text_value
+    SET value = %s
+    WHERE name = '{model_name}'
+    """.format(model_name=model_name)
+    PostgreSQL().execute(sql, (pickle.dumps(model_obj),))
+
+
 def load_model_from_pickle(model_name, path=None):
     from sklearn.externals import joblib
     path = path if path else __file__

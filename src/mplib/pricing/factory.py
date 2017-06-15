@@ -7,7 +7,7 @@ from sklearn.metrics import r2_score
 from datetime import datetime
 from mplib.pricing.helper import gen_print_var
 from mplib.common.helper import save_model_to_pg, load_model_from_pg, load_model_from_pickle, save_model_to_pickle
-from mplib.common.helper import print_var_info, exists_model_in_pg, vector_reshape_to_matrix
+from mplib.common.helper import print_var_info, exists_model_in_pg, vector_reshape_to_matrix, update_model_to_pg
 import numpy
 import time
 
@@ -79,7 +79,9 @@ class SKAssess(object):
             self.gen_model_name()
 
         if self.path is None:
-            if not exists_model_in_pg(self.model_name):
+            if exists_model_in_pg(self.model_name):
+                update_model_to_pg(self.model, self.model_name)
+            else:
                 save_model_to_pg(self.model, self.model_name)
         else:
             save_model_to_pickle(self.model, self.model_name, self.path)
