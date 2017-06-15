@@ -153,10 +153,12 @@ def y_approximation(vector):
 
 def get_hive_train_data(category_id, is_event=False):
     from mplib.IO import Hive
-    sql = "SELECT data AS data FROM elengjing_price.train_{category_id}_{model_type}".format(
-        category_id=category_id,
-        model_type="event" if is_event else "daily",
-    )
+    sql = """
+    SELECT data AS data
+    FROM elengjing_price.train_{category_id}_{model_type}
+    ORDER BY RAND(1000000)
+    LIMIT 100000
+    """.format(category_id=category_id, model_type="event" if is_event else "daily")
     lines = [line.get("data") for line in Hive("idc").query(sql)]
     train_x = []
     train_y = []

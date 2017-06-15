@@ -97,7 +97,7 @@ def save_model_to_pg(model_obj, model_name):
     VALUES
     ('{model_name}', %s)
     """.format(model_name=model_name)
-    PostgreSQL().execute(sql, (pickle.dumps(model_obj),))
+    PostgreSQL("v2_uat").execute(sql, (pickle.dumps(model_obj),))
 
 
 def update_model_to_pg(model_obj, model_name):
@@ -106,7 +106,7 @@ def update_model_to_pg(model_obj, model_name):
     SET value = %s
     WHERE name = '{model_name}'
     """.format(model_name=model_name)
-    PostgreSQL().execute(sql, (pickle.dumps(model_obj),))
+    PostgreSQL("v2_uat").execute(sql, (pickle.dumps(model_obj),))
 
 
 def load_model_from_pickle(model_name, path=None):
@@ -121,7 +121,7 @@ def load_model_from_pg(model_name):
         FROM text_value
         WHERE name = '{model_name}'
         """.format(model_name=model_name)
-    return pickle.loads(PostgreSQL().query(sql)[0].get("value"))
+    return pickle.loads(PostgreSQL("v2_uat").query(sql)[0].get("value"))
 
 
 def exists_model_in_pg(model_name):
@@ -130,7 +130,7 @@ def exists_model_in_pg(model_name):
         FROM text_value
         WHERE name = '{model_name}'
         """.format(model_name=model_name)
-    ret = PostgreSQL().query(sql)
+    ret = PostgreSQL("v2_uat").query(sql)
     return True if ret else False
 
 
