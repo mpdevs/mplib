@@ -39,12 +39,14 @@ def text_file_predict(data_dir=__file__, models_dir=__file__):
 
 
 @time_elapse
-def hive_data_train(category_id, is_event=False, show_log=False):
+def hive_data_train(category_id, is_event=False, show_log=False, path=None):
     from copy import deepcopy
     a = SKAssess()
     a.category_id, a.interval = category_id, "event" if is_event else "daily"
     a.x_train, a.y_train = get_hive_train_data(category_id, is_event)
     a.x_predict, a.y_predict = deepcopy(a.x_train), deepcopy(a.y_train)
+    if path:
+        a.path = path
     a.train()
     a.save_model()
     if show_log:

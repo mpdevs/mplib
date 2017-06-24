@@ -18,7 +18,7 @@ if __name__ == "__main__":
         a = SKAssess()
         a.category_id = sys.argv[1]
         a.interval = smart_decode(sys.argv[2])
-        sql = "SELECT itemid AS itemid, data AS data FROM elengjing_price.tmp_162104 LIMIT 10"
+        sql = "SELECT itemid AS itemid, data AS data FROM elengjing_price.tmp_{0} LIMIT 10".format(a.category_id)
         data = Hive("idc").query(sql)
         data = ["\t".join([str(line.get("itemid")), str(line.get("data"))]) for line in data]
         data = list(map(lambda x: smart_decode(x).replace("\n", "").replace("\r", "").split("\t"), data))
@@ -26,11 +26,13 @@ if __name__ == "__main__":
         a.x_predict, a.y_predict = split_x_y(data)
         print(a.y_predict.shape)
         print(a.x_predict.shape)
+        a.path = "/Users/panjunjun/PycharmProjects/Lab/IO/sklearn_randomforest_{0}_daily.pickle".format(a.category_id)
         a.load_model()
         a.predict()
         data = zip(items, a.prediction.astype(str).tolist())
         for line in data:
-            print("\t".join([line[0], ",".join(line[1])]))
+            # print("\t".join([line[0], ",".join(line[1])]))
+            pass
 
     except Exception as e:
         print("\t".join(["ERROR", traceback.format_exc()]))

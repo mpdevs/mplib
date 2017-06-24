@@ -18,4 +18,4 @@ if __name__ == "__main__":
     # for idx, category_id in enumerate(category_list):
     for idx, category_id in enumerate([162103]):
         print("{0} 正在处理品类 {1} ({2}/{3})".format(datetime.now(), category_id, idx + 1, len(category_list)))
-        hive_data_train(category_id, is_event)
+        hive_data_train(category_id, is_event, path="/home/script/normal_servers/serverudf/elengjing/data/pricing_model")
