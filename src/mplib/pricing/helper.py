@@ -174,6 +174,7 @@ def execute_hive_predict_data(category_id, is_event=False, show_sql=False, udf="
     sql = """
         USE elengjing_price;
         ADD FILE /home/script/normal_servers/serverudf/elengjing/{udf};
+        ADD FILE /home/script/normal_servers/serverudf/elengjing/data/pricing_model/sklearn_randomforest_{category_id}_{model_type}.pickle;
 
         DROP TABLE IF EXISTS tmp_{category_id};
         CREATE TABLE tmp_{category_id} (
