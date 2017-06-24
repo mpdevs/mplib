@@ -87,7 +87,7 @@ def d(string):
 def save_model_to_pickle(model_obj, model_name, path=None):
     from sklearn.externals import joblib
     path = path if path else __file__
-    joblib.dump(model_obj, "{0}.pkl".format(join(dirname(path), join("models", model_name))))
+    joblib.dump(model_obj, "{0}.pickle".format(join(dirname(path), model_name)))
 
 
 def save_model_to_pg(model_obj, model_name):
@@ -112,7 +112,7 @@ def update_model_to_pg(model_obj, model_name):
 def load_model_from_pickle(model_name, path=None):
     from sklearn.externals import joblib
     path = path if path else __file__
-    return joblib.load("{0}.pkl".format(join(dirname(path), join("models", model_name))))
+    return joblib.load("{0}.pickle".format(join(dirname(path), model_name)))
 
 
 def load_model_from_pg(model_name):
