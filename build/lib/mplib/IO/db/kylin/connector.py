@@ -17,8 +17,8 @@ def get_env_dict():
 
 
 class Kylin(object):
-    def __init__(self, env="local"):
-        self.conn = pykylin.connect(**get_env(env))
+    def __init__(self, env="local", limit=50000):
+        self.conn = pykylin.connect(limit=limit, **get_env(env))
 
     def get(self, sql):
         rows = self.query(sql)

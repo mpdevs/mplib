@@ -79,19 +79,19 @@ class MPPG(object):
     def query(self, operation, parameters=None, fetchone=False):
         if not self.in_transaction:
             self.begin()
-        try:
-            self.cursor.execute(operation, parameters) if parameters else self.cursor.execute(operation)
-            rows = [self.cursor.fetchone()] if fetchone else self.cursor.fetchall()
+        # try:
+        self.cursor.execute(operation, parameters) if parameters else self.cursor.execute(operation)
+        rows = [self.cursor.fetchone()] if fetchone else self.cursor.fetchall()
 
-        except:
-            traceback.print_exc()
-            self.cursor.close()
-            self.pool.putconn(self.conn, close=True)
-            return False
-        else:
-            self.cursor.close()
-            self.pool.putconn(self.conn)
-            return [smart_decode(dict(r)) for r in rows]
+        # except:
+            # traceback.print_exc()
+            # self.cursor.close()
+            # self.pool.putconn(self.conn, close=True)
+            # return False
+        # else:
+        self.cursor.close()
+        self.pool.putconn(self.conn)
+        return [smart_decode(dict(r)) for r in rows]
 
     def begin(self):
         self.in_transaction = True

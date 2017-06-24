@@ -1,13 +1,13 @@
 # coding: utf-8
 # __author__: u"John"
-from __future__ import unicode_literals, absolute_import, print_function, division
+from __future__ import absolute_import, print_function, division
 from mplib.common import time_elapse
 from mplib.IO import Hive, PostgreSQL
 from mplib import *
 
 
-@time_elapse
-def gen_attribute_dictionary():
+# @time_elapse
+def gen_attribute_dictionary(out=False):
     sql = """
     DROP TABLE IF EXISTS elengjing_price.attr_value_text;
     CREATE TABLE IF NOT EXISTS elengjing_price.attr_value_text(
@@ -26,11 +26,14 @@ def gen_attribute_dictionary():
     SELECT *
     FROM elengjing_price.attr_value_text;
     """
-    Hive("idc").execute(sql)
+    if out:
+        print(sql)
+    else:
+        Hive("idc").execute(sql)
 
 
-@time_elapse
-def gen_attribute_matrix(category_id, keep_tmp=False):
+# @time_elapse
+def gen_attribute_matrix(category_id, keep_tmp=False, out=False):
     sql = """
     DROP TABLE IF EXISTS elengjing_price.attr_unique_itemid_{category_id};
     CREATE TABLE IF NOT EXISTS elengjing_price.attr_unique_itemid_{category_id}(
@@ -138,7 +141,10 @@ def gen_attribute_matrix(category_id, keep_tmp=False):
     ) AS a
     GROUP BY itemid;
     """.format(category_id=category_id)
-    Hive("idc").execute(sql)
+    if out:
+        print(sql)
+    else:
+        Hive("idc").execute(sql)
 
     if not keep_tmp:
         sql = """
@@ -149,32 +155,41 @@ def gen_attribute_matrix(category_id, keep_tmp=False):
         DROP TABLE item_attr_1_{category_id};
         DROP TABLE item_attr_{category_id};
         """.format(category_id=category_id)
-        Hive("idc").execute(sql)
+        if out:
+            print(sql)
+        else:
+            Hive("idc").execute(sql)
 
 
-@time_elapse
-def gen_train_features(category_id, is_event=False, date="WHERE daterange BETWEEN '2016-05-01' AND '2016-05-24'"):
+# @time_elapse
+def gen_train_features(category_id, is_event=False, date="WHERE daterange BETWEEN '2016-05-01' AND '2016-05-24'", out=False):
     event = "event" if is_event else "daily"
     sql = """
     USE elengjing_price;
     DROP TABLE IF EXISTS train_{category_id}_{event};
-    CREATE TABLE train_{category_id}_{event} AS
+    CREATE TABLE train_{category_id}_{event} (
+        itemid STRING,
+        data STRING
+    )CLUSTERED BY (itemid) INTO 113 BUCKETS;
+
+    INSERT INTO train_{category_id}_{event}
     SELECT
         i.itemid,
-        CONCAT_WS(',',
-        CAST(i.avg_price AS STRING),
-        CAST((UNIX_TIMESTAMP() - TO_UNIX_TIMESTAMP(i.listeddate)) / 86400.0 AS STRING),
-        CAST(shop.level AS STRING),
-        CAST(shop.favor AS STRING),
-        CAST(s.all_spu AS STRING),
-        CAST(s.all_sales_rank AS STRING),
-        CAST(sc.category_spu AS STRING),
-        CAST(sc.category_sales_rank AS STRING),
-        CAST(s.shop_avg_price AS STRING),
-        CAST(s.shop_avg_price_rank AS STRING),
-        CAST(sc.category_avg_price AS STRING),
-        CAST(sc.category_avg_price_rank AS STRING),
-        v.data
+        CONCAT_WS(
+            ',',
+            NVL(CAST(i.avg_price AS STRING), '0'),
+            NVL(CAST((UNIX_TIMESTAMP() - TO_UNIX_TIMESTAMP(i.listeddate)) / 86400.0 AS STRING), '0'),
+            NVL(CAST(shop.level AS STRING), '0'),
+            NVL(CAST(shop.favor AS STRING), '0'),
+            NVL(CAST(s.all_spu AS STRING), '0'),
+            NVL(CAST(s.all_sales_rank AS STRING), '0'),
+            NVL(CAST(sc.category_spu AS STRING), '0'),
+            NVL(CAST(sc.category_sales_rank AS STRING), '0'),
+            NVL(CAST(s.shop_avg_price AS STRING), '0'),
+            NVL(CAST(s.shop_avg_price_rank AS STRING), '0'),
+            NVL(CAST(sc.category_avg_price AS STRING), '0'),
+            NVL(CAST(sc.category_avg_price_rank AS STRING), '0'),
+            v.data
       ) AS data
     FROM
       (SELECT
@@ -219,7 +234,10 @@ def gen_train_features(category_id, is_event=False, date="WHERE daterange BETWEE
     AND shop.favor IS NOT NULL
     AND i.avg_price BETWEEN 10 AND 10000;
     """.format(category_id=category_id, date_filter=date, event=event)
-    Hive("idc").execute(sql)
+    if out:
+        print(sql)
+    else:
+        Hive("idc").execute(sql)
 
 
 def get_all_category():
@@ -227,30 +245,32 @@ def get_all_category():
     return [str(line.get("id")) for line in lines]
 
 
-def batch(date_filter, tag_dict=False, tagging=False, keep_tmp=False, feature=False, is_event=False):
+def batch(date_filter, tag_dict=False, tagging=False, keep_tmp=False, feature=False, is_event=False, to_file=False):
     from datetime import datetime
     if tag_dict:
-        print("{0} 开始处理标签字典".format(datetime.now()))
-        gen_attribute_dictionary()
+        # print("{0} 开始处理标签字典".format(datetime.now()))
+        gen_attribute_dictionary(to_file)
     category_list = get_all_category()
+    # category_list = [1623]
     for idx, category in enumerate(category_list):
         if tagging:
-            print("{0} 开始处理品类 {1} ({2}/{3})的标签数据".format(datetime.now(), category, idx + 1, len(category_list)))
-            gen_attribute_matrix(category_id=category, keep_tmp=keep_tmp)
+            # print("{0} 开始处理品类 {1} ({2}/{3})的标签数据".format(datetime.now(), category, idx + 1, len(category_list)))
+            gen_attribute_matrix(category, keep_tmp, to_file)
         if feature:
-            event = "活动定价" if is_event else "日常定价"
-            print("{0} 开始生成品类 {1} ({2}/{3}){4}的训练数据".format(
-                datetime.now(), category, idx + 1, len(category_list), event))
-            gen_train_features(category, is_event, date_filter)
+            # event = "活动定价" if is_event else "日常定价"
+            # print("{0} 开始生成品类 {1} ({2}/{3}){4}的训练数据".format(
+            #     datetime.now(), category, idx + 1, len(category_list), event))
+            gen_train_features(category, is_event, date_filter, to_file)
 
 
 if __name__ == "__main__":
     batch_dict = dict(
         tag_dict=False,
-        tagging=False,
+        tagging=True,
         feature=True,
         keep_tmp=False,
         is_event=True,
-        date_filter="WHERE daterange BETWEEN '2016-05-25' AND '2016-05-31'"
+        date_filter="WHERE daterange BETWEEN '2016-05-25' AND '2016-05-31'",
+        to_file=True,
     )
     batch(**batch_dict)
