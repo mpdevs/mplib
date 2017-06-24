@@ -53,7 +53,7 @@ def hive_data_train(category_id, is_event=False, show_log=False):
 
 
 @time_elapse
-def hive_data_predict(category_id, is_event=False, show_sql=False, udf="udf_item_pricing12.py"):
+def hive_data_predict(category_id, is_event=False, show_sql=False, udf="udf_item_pricing13.py"):
     execute_hive_predict_data(category_id, is_event, show_sql, udf)
 
 

@@ -169,7 +169,7 @@ def get_hive_train_data(category_id, is_event=False):
     return numpy.nan_to_num(numpy.array(train_x)), vrm(numpy.nan_to_num(numpy.array(train_y)))
 
 
-def execute_hive_predict_data(category_id, is_event=False, show_sql=False, udf="udf_item_pricing12.py"):
+def execute_hive_predict_data(category_id, is_event=False, show_sql=False, udf="udf_item_pricing13.py"):
     from mplib.IO import Hive
     sql = """
         USE elengjing_price;

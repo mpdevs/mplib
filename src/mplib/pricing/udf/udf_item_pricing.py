@@ -21,7 +21,7 @@ if __name__ == "__main__":
         a.category_id = sys.argv[1]
         a.interval = smart_decode(sys.argv[2])
         a.x_predict, a.y_predict = split_x_y(data)
-        a.path = "sklearn_randomforest_{0}_daily.pickle"
+        a.path = "sklearn_randomforest_{0}_daily.pickle".format(a.category_id)
         a.load_model()
         a.predict()
         data = zip(items, a.prediction.astype(str).tolist())
