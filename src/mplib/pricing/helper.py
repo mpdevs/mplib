@@ -180,7 +180,7 @@ def execute_hive_predict_data(category_id, is_event=False, show_sql=False, udf="
         CREATE TABLE tmp_{category_id} (
             itemid STRING,
             data STRING
-        )CLUSTERED BY (itemid) INTO 113 BUCKETS
+        )CLUSTERED BY (itemid) INTO 2147 BUCKETS
         STORED AS ORC;
 
         INSERT INTO tmp_{category_id}
@@ -207,7 +207,7 @@ def execute_hive_predict_data(category_id, is_event=False, show_sql=False, udf="
                 shopid, itemid,
                 MAX(listeddate) AS listeddate,
                 CASE WHEN SUM(salesqty) = 0 THEN 0 ELSE SUM(salesamt) / SUM(salesqty) END AS avg_price
-            FROM elengjing.women_clothing_item
+            FROM transforms.women_clothing_item_new_dict
             WHERE categoryid = {category_id}
             GROUP BY
                 shopid, itemid
@@ -219,7 +219,7 @@ def execute_hive_predict_data(category_id, is_event=False, show_sql=False, udf="
                 CASE WHEN SUM(salesqty) = 0 THEN 0 ELSE SUM(salesamt) / SUM(salesqty) END AS shop_avg_price,
                 ROW_NUMBER() OVER(ORDER BY SUM(salesamt) DESC) AS all_sales_rank,
                 ROW_NUMBER() OVER(ORDER BY CASE WHEN SUM(salesqty) = 0 THEN 0 ELSE SUM(salesamt) / SUM(salesqty) END DESC) AS shop_avg_price_rank
-            FROM elengjing.women_clothing_item
+            FROM transforms.women_clothing_item_new_dict
             GROUP BY
                 shopid
         ) AS s
@@ -231,7 +231,7 @@ def execute_hive_predict_data(category_id, is_event=False, show_sql=False, udf="
                 ROW_NUMBER() OVER(ORDER BY SUM(salesamt) DESC) AS category_sales_rank,
                 ROW_NUMBER() OVER(ORDER BY CASE WHEN SUM(salesqty) = 0 THEN 0 ELSE SUM(salesamt) / SUM(salesqty) END DESC) AS category_avg_price_rank,
                 CASE WHEN SUM(salesqty) = 0 THEN 0 ELSE SUM(salesamt) / SUM(salesqty) END AS category_avg_price
-            FROM elengjing.women_clothing_item
+            FROM transforms.women_clothing_item_new_dict
             WHERE categoryid = {category_id}
             GROUP BY
                 shopid

@@ -180,7 +180,7 @@ def execute_hive_predict_data(category_id, is_event=False, show_sql=False, udf="
         CREATE TABLE tmp_{category_id} (
             itemid STRING,
             data STRING
-        )CLUSTERED BY (itemid) INTO 113 BUCKETS
+        )CLUSTERED BY (itemid) INTO 2147 BUCKETS
         STORED AS ORC;
 
         INSERT INTO tmp_{category_id}
