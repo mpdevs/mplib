@@ -1,6 +1,6 @@
 # coding: utf-8
 # __author__: u"John"
-from __future__ import absolute_import, print_function, division
+from __future__ import unicode_literals, absolute_import, print_function, division
 from mplib.common import time_elapse
 from mplib.IO import Hive, PostgreSQL
 from mplib import *
@@ -44,7 +44,7 @@ def gen_attribute_matrix(category_id, keep_tmp=False, out=False):
 
     INSERT INTO TABLE elengjing_price.attr_unique_itemid_{category_id}
     SELECT itemid
-    FROM elengjing.women_clothing_item_attr_v1
+    FROM transforms.women_clothing_item_attr
     WHERE categoryid = {category_id}
     AND attrname != '品牌' GROUP BY itemid;
 
@@ -60,7 +60,7 @@ def gen_attribute_matrix(category_id, keep_tmp=False, out=False):
     SELECT
         itemid,
         CONCAT(attrname, ":", attrvalue)
-    FROM elengjing.women_clothing_item_attr_v1
+    FROM transforms.women_clothing_item_attr
     WHERE categoryid = {category_id}
     AND attrname != '品牌';
 
@@ -196,7 +196,7 @@ def gen_train_features(category_id, is_event=False, date="WHERE daterange BETWEE
         shopid, itemid,
         MAX(listeddate) AS listeddate,
         CASE WHEN SUM(salesqty) = 0 THEN 0 ELSE SUM(salesamt) / SUM(salesqty) END AS avg_price
-      FROM elengjing.women_clothing_item
+      FROM transforms.women_clothing_item_new_dict
       {date_filter}
       AND categoryid = {category_id}
       GROUP BY
@@ -208,7 +208,7 @@ def gen_train_features(category_id, is_event=False, date="WHERE daterange BETWEE
         CASE WHEN SUM(salesqty) = 0 THEN 0 ELSE SUM(salesamt) / SUM(salesqty) END AS shop_avg_price,
         ROW_NUMBER() OVER(ORDER BY SUM(salesamt) DESC) AS all_sales_rank,
         ROW_NUMBER() OVER(ORDER BY CASE WHEN SUM(salesqty) = 0 THEN 0 ELSE SUM(salesamt) / SUM(salesqty) END DESC) AS shop_avg_price_rank
-      FROM elengjing.women_clothing_item
+      FROM transforms.women_clothing_item_new_dict
       {date_filter}
       GROUP BY
         shopid) AS s
@@ -220,7 +220,7 @@ def gen_train_features(category_id, is_event=False, date="WHERE daterange BETWEE
         ROW_NUMBER() OVER(ORDER BY SUM(salesamt) DESC) AS category_sales_rank,
         ROW_NUMBER() OVER(ORDER BY CASE WHEN SUM(salesqty) = 0 THEN 0 ELSE SUM(salesamt) / SUM(salesqty) END DESC) AS category_avg_price_rank,
         CASE WHEN SUM(salesqty) = 0 THEN 0 ELSE SUM(salesamt) / SUM(salesqty) END AS category_avg_price
-      FROM elengjing.women_clothing_item
+      FROM transforms.women_clothing_item_new_dict
       {date_filter}
       AND categoryid = {category_id}
       GROUP BY
@@ -250,8 +250,8 @@ def batch(date_filter, tag_dict=False, tagging=False, keep_tmp=False, feature=Fa
     if tag_dict:
         # print("{0} 开始处理标签字典".format(datetime.now()))
         gen_attribute_dictionary(to_file)
-    category_list = get_all_category()
-    # category_list = [1623]
+    # category_list = get_all_category()
+    category_list = [50008897]
     for idx, category in enumerate(category_list):
         if tagging:
             # print("{0} 开始处理品类 {1} ({2}/{3})的标签数据".format(datetime.now(), category, idx + 1, len(category_list)))
@@ -270,7 +270,7 @@ if __name__ == "__main__":
         feature=True,
         keep_tmp=False,
         is_event=True,
-        date_filter="WHERE daterange BETWEEN '2016-05-25' AND '2016-05-31'",
+        date_filter="WHERE daterange BETWEEN '2017-06-01' AND '2017-06-18'",
         to_file=True,
     )
     batch(**batch_dict)

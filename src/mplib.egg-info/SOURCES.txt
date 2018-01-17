@@ -48,9 +48,7 @@ src/mplib/competition/udf/udf_pair_predict.py
 src/mplib/competition/udf/udf_pair_similarity.py
 src/mplib/dnr/__init__.py
 src/mplib/dnr/api.py
-src/mplib/dnr/api_kun.py
 src/mplib/dnr/factory.py
-src/mplib/dnr/factory_kun.py
 src/mplib/dnr/helper.py
 src/mplib/dnr/udf/__init__.py
 src/mplib/dnr/udf/udf_denoise.py
@@ -59,6 +57,7 @@ src/mplib/dnr/udf/udf_denoise_inquiry.py
 src/mplib/dnr/udf/udf_denoise_motherbaby.py
 src/mplib/dnr/udf/udf_denoise_weibo.py
 src/mplib/dnr/udf/udf_edit_distance.py
+src/mplib/dnr/udf/udf_mother_baby_v2.py
 src/mplib/plot/__init__.py
 src/mplib/plot/api.py
 src/mplib/pricing/__init__.py

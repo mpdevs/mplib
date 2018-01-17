@@ -107,6 +107,17 @@ IDC_KYLIN_CONNECTION = dict(
     project="elengjing",
 )
 
+PG_KOL_CONNECTION = dict(
+    host="172.16.1.100",
+    port=5432,
+    user="kol",
+    password="kol",
+    dbname="kol",
+    minconn=1,
+    maxconn=1000,
+)
+
+
 DEBUG = True
 INFO = True
 WARNING = True

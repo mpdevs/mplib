@@ -62,14 +62,19 @@ class Hive:
         else:
             return 0
 
+    def fetch_raw(self, sql):
+        self.cursor.execute(smart_encode(sql))
+        rows = []
+        for row in self.cursor:
+            rows.append("\t".join([smart_decode(_, cast=True) if _ else "" for _ in row]))
+        self.close()
+        return rows
+
     def execute(self, sql):
         for s in sql.split(";"):
             s = s.strip()
             if s:
-                try:
-                    self.cursor.execute(smart_encode(s))
-                except:
-                    print(s)
+                self.cursor.execute(smart_encode(s))
         self.close()
 
     def close(self):

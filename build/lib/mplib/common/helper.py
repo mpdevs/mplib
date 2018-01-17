@@ -12,9 +12,11 @@ from collections import OrderedDict
 from datetime import datetime
 from pprint import pprint
 from mplib import *
-
 import pickle
 import numpy
+
+
+default_datetime_format = "%Y-%m-%d"
 
 
 def print_line(placeholder="-", repeat=50, center_word=""):
@@ -146,6 +148,14 @@ def normalize(data):
 
 def remove_crlf(string):
     return smart_decode(string).replace("\n", "").replace("\r", "")
+
+
+def string_to_datetime(datetime_string, formatter=default_datetime_format):
+    return datetime.datetime.strptime(datetime_string, formatter)
+
+
+def datetime_to_string(datetime_instance, formatter=default_datetime_format):
+    return datetime_instance.strftime(formatter)
 
 
 if __name__ == "__main__":
