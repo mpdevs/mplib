@@ -135,6 +135,11 @@ def to_unicode(obj):
     else:
         return obj
 
+
+def print_zn(obj):
+    print(str(obj).replace("u\'", "\'").decode("unicode-escape"))
+
+
 if __name__ == "__main__":
     test_objs = [
         3,

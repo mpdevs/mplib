@@ -14,6 +14,7 @@ from pprint import pprint
 from mplib import *
 import pickle
 import numpy
+import os
 
 
 default_datetime_format = "%Y-%m-%d"
@@ -157,6 +158,35 @@ def string_to_datetime(datetime_string, formatter=default_datetime_format):
 def datetime_to_string(datetime_instance, formatter=default_datetime_format):
     return datetime_instance.strftime(formatter)
 
+
+def get_code_lines(start_path, ext_list=["py"]):
+    file_list = []
+
+    # 遍历文件, 递归遍历文件夹中的所有
+    def get_file(path):
+        for parent, dir_names, file_names in os.walk(path):
+            # for dir_name in dir_names:
+            #    get_file(os.path.join(parent, dir_name)) #递归
+            for file_name in file_names:
+                ext = file_name.split(".")[-1]
+                # 只统计指定的文件类型，略过一些log和cache文件
+                if ext in ext_list:
+                    file_list.append(os.path.join(parent, file_name))
+
+    # 统计一个文件的行数
+    def count_line(file_path):
+        count = 0
+        for file_line in open(file_path).xreadlines():
+            if file_line != b"" and file_line != b"\n":  # 过滤掉空行
+                count += 1
+        print("{0}----{1}".format(file_path, count))
+        return count
+
+    get_file(start_path)
+    total_lines = 0
+    for f in file_list:
+        total_lines += count_line(f)
+    print("所有代码行数:", total_lines)
 
 if __name__ == "__main__":
     print_var_str("normalize")

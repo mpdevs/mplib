@@ -1,8 +1,7 @@
 # coding: utf-8
 # __author__: u"John"
 from __future__ import unicode_literals, absolute_import, print_function, division
-from mplib.common.setting import MYSQL_SETTINGS, DAS_PRO_MYSQL_CONNECTION, LJ_TEST_MYSQL_CONNECTION
-from mplib.common.setting import LOCAL_HIVE_MYSQL_CONNECTION
+from mplib.common.setting import *
 from mplib.common import smart_decode
 from mplib import *
 import MySQLdb
@@ -18,6 +17,7 @@ def get_env_dict():
         lj_test=LJ_TEST_MYSQL_CONNECTION,
         mpportal=MYSQL_SETTINGS,
         local_hive=LOCAL_HIVE_MYSQL_CONNECTION,
+        das_api=DAS_API_MYSQL_CONNECTION,
     )
 
 
@@ -99,5 +99,5 @@ class MPMySQL(object):
 if __name__ == "__main__":
     print(MPMySQL().query("SELECT now() AS time;", fetchone=True))
     print(MPMySQL().query("SELECT now() AS time;"))
-    print(MPMySQL(env="lj_test").query("select now() AS time;"))
+    print(MPMySQL(env="das_api").query("select now() AS time;"))
     MPMySQL.show_env_dict()

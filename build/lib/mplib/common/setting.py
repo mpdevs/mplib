@@ -118,6 +118,15 @@ PG_KOL_CONNECTION = dict(
 )
 
 
+DAS_API_MYSQL_CONNECTION = dict(
+    host="172.16.1.100",
+    port=3306,
+    user="das",
+    passwd="123",
+    db="das_api",
+)
+
+
 DEBUG = True
 INFO = True
 WARNING = True
