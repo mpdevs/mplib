@@ -51,13 +51,16 @@ src/mplib/dnr/api.py
 src/mplib/dnr/factory.py
 src/mplib/dnr/helper.py
 src/mplib/dnr/udf/__init__.py
+src/mplib/dnr/udf/get_sample.py
+src/mplib/dnr/udf/test.py
 src/mplib/dnr/udf/udf_denoise.py
 src/mplib/dnr/udf/udf_denoise_ebusiness.py
 src/mplib/dnr/udf/udf_denoise_inquiry.py
 src/mplib/dnr/udf/udf_denoise_motherbaby.py
 src/mplib/dnr/udf/udf_denoise_weibo.py
 src/mplib/dnr/udf/udf_edit_distance.py
-src/mplib/dnr/udf/udf_mother_baby_v2.py
+src/mplib/dnr/udf/udf_mother_baby_full.py
+src/mplib/dnr/udf/udf_mother_baby_increamental.py
 src/mplib/plot/__init__.py
 src/mplib/plot/api.py
 src/mplib/pricing/__init__.py

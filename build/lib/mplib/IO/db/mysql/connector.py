@@ -18,6 +18,7 @@ def get_env_dict():
         mpportal=MYSQL_SETTINGS,
         local_hive=LOCAL_HIVE_MYSQL_CONNECTION,
         das_api=DAS_API_MYSQL_CONNECTION,
+        das_api_dev=DAS_API_DEV_MYSQL_CONNECTION,
     )
 
 

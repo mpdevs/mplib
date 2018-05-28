@@ -40,6 +40,7 @@ for line in sys.stdin:
         if len(line) <= 1:
             continue
         line[0] = mother_baby_denoise(line[0], l)
-        print(smart_encode("\t".join(line)))
+        print(smart_encode("\t".join(list(reversed(line)))))
+        print(smart_encode(line[0]))
     except Exception as e:
         print(smart_encode("\t".join([traceback.format_exc().replace("\t", " ").replace("\n", " "), "ERROR"])))
