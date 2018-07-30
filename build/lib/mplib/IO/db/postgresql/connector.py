@@ -1,7 +1,7 @@
 # coding: utf-8
 # __author__: "John"
 from __future__ import unicode_literals, absolute_import, print_function, division
-from mplib.common.setting import PG_CONNECTION, PG_UAT_CONNECTION, PG_KOL_CONNECTION
+from mplib.common.setting import PG_CONNECTION, PG_UAT_CONNECTION, PG_KOL_CONNECTION, PG_KOL_TMP_CONNECTION
 from mplib.common import smart_decode
 import psycopg2.extras
 import psycopg2.pool
@@ -26,6 +26,7 @@ def get_env_dict():
         v2_uat=switch_db(PG_UAT_CONNECTION, "elengjing"),
         v2_pro=switch_db(PG_CONNECTION, "elengjing"),
         kol=PG_KOL_CONNECTION,
+        kol_tmp=PG_KOL_TMP_CONNECTION,
     )
 
 

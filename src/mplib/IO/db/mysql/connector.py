@@ -34,54 +34,27 @@ class MPMySQL(object):
 
     def __init__(self, env="das_pro"):
         self.env = env
+        self.conn = db_connect(env=self.env)
+        self.cursor = None
 
     def query(self, sql, dict_cursor=True, fetchone=False, cast=True):
-        conn = db_connect(env=self.env)
-        cursor = conn.cursor(MySQLdb.cursors.DictCursor) if dict_cursor else conn.cursor()
-        cursor.execute(sql)
-        try:
-            ret = [cursor.fetchone()] if fetchone else list(cursor.fetchall())
-        except Exception as e:
-            print("error message:{0}".format(e))
-            return False
+        self.cursor = self.conn.cursor(MySQLdb.cursors.DictCursor) if dict_cursor else conn.cursor()
+        self.cursor.execute(sql)
+        ret = [self.cursor.fetchone()] if fetchone else list(self.cursor.fetchall())
+        if cast:
+            return smart_decode(ret)
         else:
-            if cast:
-                return smart_decode(ret)
-            else:
-                return ret
-        finally:
-            cursor.close()
-            conn.close()
+            return ret
 
     def execute(self, sql):
-        conn = db_connect(env=self.env)
-        cursor = conn.cursor()
-        try:
-            cursor.execute(sql if isinstance(sql, str) else sql.encode("utf8"))
-            conn.commit()
-        except Exception as e:
-            print("error message:{0}".format(e))
-            return False
-        else:
-            return True
-        finally:
-            cursor.close()
-            conn.close()
+        self.cursor = self.conn.cursor()
+        self.cursor.execute(sql if isinstance(sql, str) else sql.encode("utf8"))
+        self.conn.commit()
 
     def execute_many(self, sql, args):
-        conn = db_connect(env=self.env)
-        cursor = conn.cursor()
-        try:
-            cursor.executemany(sql, args)
-            conn.commit()
-        except Exception as e:
-            print("error message:{0}".format(e))
-            return False
-        else:
-            return True
-        finally:
-            cursor.close()
-            conn.close()
+        self.cursor = self.conn.cursor()
+        self.cursor.executemany(sql, args)
+        self.conn.commit()
 
     @staticmethod
     def get_connect(self):
@@ -95,6 +68,9 @@ class MPMySQL(object):
     def show_env_dict():
         from pprint import pprint
         pprint(get_env_dict())
+
+    def __del__(self):
+        self.conn.close()
 
 
 if __name__ == "__main__":

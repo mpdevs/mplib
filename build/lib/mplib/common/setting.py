@@ -118,6 +118,16 @@ PG_KOL_CONNECTION = dict(
 )
 
 
+PG_KOL_TMP_CONNECTION = dict(
+    host="172.16.1.100",
+    port=5432,
+    user="kol",
+    password="kol",
+    dbname="kol_tmp",
+    minconn=1,
+    maxconn=1000,
+)
+
 
 DAS_API_MYSQL_CONNECTION = dict(
     host="172.16.1.100",

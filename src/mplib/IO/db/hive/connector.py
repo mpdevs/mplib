@@ -75,7 +75,6 @@ class Hive:
                 self.cursor.execute(smart_encode(s))
 
     def close(self):
-        self.cursor.close()
         self.conn.close()
 
     @staticmethod
