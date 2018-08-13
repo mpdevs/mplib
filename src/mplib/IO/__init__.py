@@ -34,4 +34,11 @@ try:
 except ImportError:
     pass
 
+try:
+    from mplib.IO.file.hdfs.hdfs_helper import get_hdfs_client
+except ImportError:
+    pass
+
 from mplib.IO.file.binary.pickle_helper import pickle_load, pickle_dump
+from mplib.IO.db.sqlite.connector import SQLite
+

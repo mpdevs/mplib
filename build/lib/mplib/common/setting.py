@@ -145,6 +145,8 @@ DAS_API_DEV_MYSQL_CONNECTION = dict(
     db="das_api_dev",
 )
 
+HDFS_LOCAL_MASTER = "http://172.16.1.13:50070"
+HDFS_LOCAL_SLAVE = "http://172.16.1.14:50070"
 
 DEBUG = True
 INFO = True

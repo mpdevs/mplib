@@ -19,11 +19,14 @@ src/mplib/IO/db/postgresql/__init__.py
 src/mplib/IO/db/postgresql/connector.py
 src/mplib/IO/db/redis/__init__.py
 src/mplib/IO/db/redis/connector.py
+src/mplib/IO/db/sqlite/__init__.py
+src/mplib/IO/db/sqlite/connector.py
 src/mplib/IO/file/__init__.py
 src/mplib/IO/file/texts.py
 src/mplib/IO/file/binary/__init__.py
 src/mplib/IO/file/binary/pickle_helper.py
 src/mplib/IO/file/hdfs/__init__.py
+src/mplib/IO/file/hdfs/hdfs_helper.py
 src/mplib/Math/__init__.py
 src/mplib/Math/elementary_function.py
 src/mplib/Math/helper.py
